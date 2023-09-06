@@ -1,0 +1,22 @@
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans&display=swap");
+html {
+  overflow: auto;
+  overflow-x: hidden;
+}
+body {
+  background: #333333 !important;
+  height: 100vh;
+  width: 100%;
+  margin: 0px;
+  color: #cccccc !important;
+  font-family: "Open Sans", sans-serif !important;
+}
+::-webkit-scrollbar {
+  width: 0; /* Remove scrollbar space */
+  background: transparent; /* Optional: just make scrollbar invisible */
+}
+/* Optional: show position indicator in red */
+::-webkit-scrollbar-thumb {
+  width: 0;
+  background: transparent;
+}
