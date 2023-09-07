@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Wrapper, Image } from "./Layouts";
+import { useRouter } from "next/navigation";
+import { Wrapper, Image, useMediaQuery } from "./Layouts";
 import { Spacer } from "./Spacer";
 import { PrimaryButton } from "./Buttons";
 import { P } from "./Typography";
@@ -15,14 +16,25 @@ import { toast } from "react-toastify";
 import { RecentState } from "./Context/Recents";
 import { PromptState } from "./Context/Prompts";
 const Sidebar = () => {
-  const { allRecents, reloadRecent, setReloadRecent }: any = RecentState();
+  const isResponsive = useMediaQuery({ query: "(max-width: 756px)" });
+
+  const {
+    allRecents,
+    reloadRecent,
+    setReloadRecent,
+    loadingRecent,
+    activeRecent,
+    setActiveRecent,
+  }: any = RecentState();
   const { allPrompts, openModal, setOpenModal }: any = PromptState();
+  const router = useRouter();
   const [open, setOpen] = useState(true);
   const [displayRecent, setDisplayRecent] = useState<any>([]);
   const [displayPrompt, setDisplayPrompt] = useState<any>([]);
   const [addRecModal, setAddRecModal] = useState(false);
   const [chatTitle, setChatTitle] = useState("");
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState("");
   const addChat = async () => {
     try {
       setLoading(true);
@@ -85,6 +97,14 @@ const Sidebar = () => {
   useEffect(() => {
     setDisplayPrompt(allPrompts);
   }, [allPrompts]);
+  useEffect(() => {
+    const temp = localStorage.getItem("gptToken");
+    if (temp) {
+      setToken(temp);
+      return;
+    }
+    router.push("/signin");
+  }, []);
   return (
     <>
       {addRecModal && (
@@ -127,10 +147,12 @@ const Sidebar = () => {
         <>
           <Wrapper
             width="260px"
-            height="100vh"
+            height={isResponsive ? "100vh" : "100vh"}
             bg="#202123"
             boxShadow="rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px"
-            className="d-flex flex-column justify-content-between align-items-between ps-2 pe-2 pt-3 pb-3"
+            className={`d-flex flex-column justify-content-between align-items-between ps-2 pe-2 pt-3 pb-3`}
+            position={isResponsive ? "absolute" : ""}
+            style={{ zIndex: 700 }}
           >
             <Wrapper id="top">
               <Wrapper
@@ -146,6 +168,7 @@ const Sidebar = () => {
                   className="d-flex flex-row align-items-center justify-content-start gap-2"
                   onClick={() => {
                     setAddRecModal(true);
+                    setActiveRecent("");
                   }}
                 >
                   <AddIcon style={{ fontSize: "14px" }} />

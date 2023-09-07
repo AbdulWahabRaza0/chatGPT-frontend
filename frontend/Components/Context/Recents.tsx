@@ -10,6 +10,11 @@ type ContextProps = {
   setActiveRecent: any;
   reloadRecent: boolean;
   setReloadRecent: any;
+  loadingRecent: boolean;
+  recordedText: any;
+  setRecordedText: any;
+  setRecordLoading: any;
+  recordLoading: boolean;
 };
 const RecentContext = createContext<ContextProps | null>(null);
 const RecentProvider = ({ children }: any) => {
@@ -17,9 +22,12 @@ const RecentProvider = ({ children }: any) => {
   const [activeRecent, setActiveRecent] = useState("");
   const [allMessages, setAllMessages] = useState<any>([]);
   const [reloadRecent, setReloadRecent] = useState(false);
-
+  const [loadingRecent, setLoadingRecent] = useState(false);
+  const [recordedText, setRecordedText] = useState<any>("");
+  const [recordLoading, setRecordLoading] = useState(false);
   const getAllRecent = async (token: string) => {
     try {
+      setLoadingRecent(true);
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -27,7 +35,7 @@ const RecentProvider = ({ children }: any) => {
       };
 
       const res = await client.get("/recent", config);
-
+      setLoadingRecent(false);
       if (res.status === 200) {
         setAllRecents(res.data);
       } else {
@@ -43,16 +51,13 @@ const RecentProvider = ({ children }: any) => {
         });
       }
     } catch (e) {
+      setLoadingRecent(false);
       console.log("This is error ", e);
     }
   };
   useEffect(() => {
-    // const item = localStorage.getItem("userInfo");
-    // const userData = JSON.parse(item);
-
-    getAllRecent(
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0ZjcxNjA4ZWYwMjJhMzRmNzNkZmQzNSIsImlhdCI6MTY5MzkxNDYzMywiZXhwIjoxNjk2NTA2NjMzfQ.Dk89NdzCYURMAcBLGeUpR8zHaDAMAB33uG_4jB0It98"
-    );
+    const item: any = localStorage.getItem("gptToken");
+    getAllRecent(item);
   }, [reloadRecent]);
   return (
     <>
@@ -65,6 +70,11 @@ const RecentProvider = ({ children }: any) => {
           setActiveRecent,
           allMessages,
           setAllMessages,
+          loadingRecent,
+          setRecordedText,
+          recordedText,
+          recordLoading,
+          setRecordLoading,
         }}
       >
         {children}

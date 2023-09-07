@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Wrapper, Image } from "./Layouts";
-import { PrimaryInput } from "./Inputs";
+import { Wrapper, Image, useMediaQuery } from "./Layouts";
+import { PrimaryInput, PrimaryTextarea } from "./Inputs";
 import SendIcon from "@mui/icons-material/Send";
 import { P } from "./Typography";
 import Tooltip from "@mui/material/Tooltip";
@@ -11,9 +11,19 @@ import { RecentState } from "./Context/Recents";
 import { PromptState } from "./Context/Prompts";
 import { client } from "../services/client";
 import { toast } from "react-toastify";
+import RecordAudio from "./RecordAudio";
 const Chat = () => {
-  const { allMessages, reloadRecent, setReloadRecent, activeRecent }: any =
-    RecentState();
+  const isResponsive = useMediaQuery({ query: "(max-width: 756px)" });
+  const {
+    allMessages,
+    reloadRecent,
+    setReloadRecent,
+    activeRecent,
+    setActiveRecent,
+    recordedText,
+    setRecordedText,
+    recordLoading,
+  }: any = RecentState();
   const {
     allPrompts,
     reloadPrompt,
@@ -29,7 +39,13 @@ const Chat = () => {
   const [promptMessage, setPromptMessage] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingPromptBtn, setLoadingPromptBtn] = useState(false);
+  const [token, setToken] = useState("");
+  const [textHeight, setTextHeight] = useState(50);
   const addMessage = async () => {
+    if (!message || loading) {
+      return;
+    }
     try {
       setLoading(true);
 
@@ -41,13 +57,16 @@ const Chat = () => {
         },
         {
           headers: {
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0ZjcxNjA4ZWYwMjJhMzRmNzNkZmQzNSIsImlhdCI6MTY5MzkxNDYzMywiZXhwIjoxNjk2NTA2NjMzfQ.Dk89NdzCYURMAcBLGeUpR8zHaDAMAB33uG_4jB0It98`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
       setLoading(false);
       if (res.status === 201) {
         setReloadRecent(!reloadRecent);
+        if (res.data.newAddition) {
+          setActiveRecent(res.data.saved._id);
+        }
         setMessage("");
       } else {
         toast.error("Invalid Error!", {
@@ -92,6 +111,7 @@ const Chat = () => {
       return;
     }
     try {
+      setLoadingPromptBtn(true);
       const res = await client.post(
         "/prompt/add",
         {
@@ -100,20 +120,23 @@ const Chat = () => {
         },
         {
           headers: {
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0ZjcxNjA4ZWYwMjJhMzRmNzNkZmQzNSIsImlhdCI6MTY5MzkxNDYzMywiZXhwIjoxNjk2NTA2NjMzfQ.Dk89NdzCYURMAcBLGeUpR8zHaDAMAB33uG_4jB0It98`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
+      setLoadingPromptBtn(false);
 
       if (res.status === 201) {
         setReloadPrompt(!reloadPrompt);
         setPromptMessage("");
         setPromptTitle("");
+        setMessage("");
+        setActivePrompt("");
         setAddProModal(false);
         if (openModal) {
           setOpenModal(false);
         }
-        toast.success("Succeful!", {
+        toast.success("Prompt Added!", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
@@ -136,6 +159,8 @@ const Chat = () => {
         });
       }
     } catch (e) {
+      setLoadingPromptBtn(false);
+
       console.log("This is error ", e);
       toast.error("Invalid Error!", {
         position: "bottom-left",
@@ -164,6 +189,8 @@ const Chat = () => {
       return;
     }
     try {
+      setLoadingPromptBtn(true);
+
       const res = await client.post(
         "/prompt/update",
         {
@@ -173,20 +200,23 @@ const Chat = () => {
         },
         {
           headers: {
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0ZjcxNjA4ZWYwMjJhMzRmNzNkZmQzNSIsImlhdCI6MTY5MzkxNDYzMywiZXhwIjoxNjk2NTA2NjMzfQ.Dk89NdzCYURMAcBLGeUpR8zHaDAMAB33uG_4jB0It98`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
+      setLoadingPromptBtn(false);
 
       if (res.status === 201) {
         setReloadPrompt(!reloadPrompt);
         setPromptMessage("");
         setPromptTitle("");
+        setMessage("");
+        setActivePrompt("");
         setAddProModal(false);
         if (openModal) {
           setOpenModal(false);
         }
-        toast.success("succefully update!", {
+        toast.success("Prompt updated!", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
@@ -209,6 +239,8 @@ const Chat = () => {
         });
       }
     } catch (e) {
+      setLoadingPromptBtn(false);
+
       console.log("This is error ", e);
       toast.error("Invalid Error!", {
         position: "bottom-left",
@@ -223,10 +255,16 @@ const Chat = () => {
     }
   };
   const handleEnterPress = (event: any) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      setTextHeight(50);
       const myElement: HTMLElement | null =
         document.getElementById("mainClickToRequest");
       myElement?.click();
+    } else if (event.key === "Enter" && event.shiftKey) {
+      if (textHeight < 250) {
+        setTextHeight(textHeight + 20);
+      }
     }
   };
   useEffect(() => {
@@ -244,7 +282,20 @@ const Chat = () => {
       }
     }
   }, [activePrompt, openModal]);
+  useEffect(() => {
+    if (Boolean(recordedText)) {
+      setMessage(recordedText);
+      setRecordedText("");
+    }
+  }, [recordedText]);
+  useEffect(() => {
+    const temp: any = localStorage.getItem("gptToken");
+    if (temp) {
+      setToken(temp);
 
+      return;
+    }
+  }, []);
   return (
     <>
       {(addProModal || openModal) && (
@@ -285,7 +336,14 @@ const Chat = () => {
                 className="p-4 mt-1"
                 bg="green"
               >
-                Add Prompt
+                {loadingPromptBtn ? (
+                  <div
+                    className="spinner-border text-success"
+                    role="status"
+                  ></div>
+                ) : (
+                  "Add Prompt"
+                )}
               </PrimaryButton>
             </Wrapper>
           </ModalComp>
@@ -296,6 +354,7 @@ const Chat = () => {
         className="d-flex flex-column align-items-center justfy-content-center"
         position="relative"
         width="100%"
+        height="100vh"
       >
         {activeRecent ? (
           <Wrapper
@@ -321,8 +380,10 @@ const Chat = () => {
                       className="d-flex flex-row align-items-start justify-content-center"
                     >
                       <Wrapper
-                        width="60%"
-                        className="d-flex flex-row align-items-center justify-content-start gap-3"
+                        width={isResponsive ? "99%" : "63%"}
+                        className={`d-flex flex-row align-items-center justify-content-start gap-3 ${
+                          isResponsive && "me-3"
+                        }`}
                       >
                         <Image src="/assets/profile.webp" alt="profile" />
                         <P className="mb-0 mt-1" lHeight="27px">
@@ -339,11 +400,13 @@ const Chat = () => {
                   >
                     <Wrapper
                       width="100%"
-                      className="d-flex flex-row align-items-center justify-content-center"
+                      className={`d-flex flex-row align-items-center justify-content-center `}
                     >
                       <Wrapper
-                        width="60%"
-                        className="d-flex flex-row align-items-start justify-content-start gap-3"
+                        width={isResponsive ? "99%" : "63%"}
+                        className={`d-flex flex-row align-items-start justify-content-start gap-3 ${
+                          isResponsive && "me-3"
+                        }`}
                       >
                         <Image src="/assets/profile.webp" alt="profile" />
                         <P className="mb-0 mt-1" lHeight="27px">
@@ -362,7 +425,7 @@ const Chat = () => {
                   className="d-flex flex-row align-items-start justify-content-center"
                 >
                   <Wrapper
-                    width="60%"
+                    width={isResponsive ? "95%" : "60%"}
                     className="d-flex flex-row align-items-center justify-content-start gap-3"
                   >
                     <Image src="/assets/profile.webp" alt="profile" />
@@ -381,6 +444,20 @@ const Chat = () => {
               <P fontSize="41px" weight="600">
                 Chat GPT
               </P>
+
+              {loading && (
+                <Wrapper
+                  position="absolute"
+                  top="50%"
+                  left="50%"
+                  style={{ transform: "translate(-50%,-50%)" }}
+                >
+                  <Wrapper
+                    className="spinner-border text-success"
+                    role="status"
+                  ></Wrapper>
+                </Wrapper>
+              )}
             </Wrapper>
           </>
         )}
@@ -390,28 +467,38 @@ const Chat = () => {
           position="absolute"
           bottom="0px"
           style={{ zIndex: 20 }}
-          className="p-2"
+          className={`ps-2 pe-2 pt-2 ${isResponsive ? "pb-2" : "pb-2"}`}
+          mb={"-7.5px"}
           bg="#202123"
         >
           <Wrapper
-            className="d-flex flex-row align-items-center justify-content-center"
+            className={`d-flex flex-row align-items-end  ${
+              isResponsive
+                ? "justify-content-start ms-3"
+                : "justify-content-center"
+            }`}
             boxShadow="rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
           >
-            <Wrapper position="relative" width="60%">
-              <PrimaryInput
-                type="text"
+            <Wrapper position="relative" width={isResponsive ? "90%" : "60%"}>
+              <PrimaryTextarea
+                id="primaryTextArea"
                 placeholder="Send a message"
                 value={message}
+                className="pe-5"
+                height={textHeight + "px"}
                 onKeyDown={handleEnterPress}
                 onChange={(e) => {
                   setMessage(e.target.value);
+                  if (e.target.value.length === 0) {
+                    setTextHeight(50);
+                  }
                 }}
               />
 
               <Wrapper
                 position="absolute"
                 right="20px"
-                bottom="14px"
+                bottom="19px"
                 pointer={true}
                 className="d-flex flex-row align-items-center gap-2"
                 onClick={addMessage}
@@ -423,24 +510,50 @@ const Chat = () => {
               </Wrapper>
             </Wrapper>
 
-            <Tooltip title="add to prompts">
-              <Wrapper
-                className="ms-2"
-                pointer={true}
-                onClick={() => {
-                  setAddProModal(true);
-                }}
+            <Wrapper
+              pointer={true}
+              border="1px solid white"
+              borderRadius="10px"
+              className="ms-2 mb-1"
+              bg="#333333"
+              boxShadow="rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
+            >
+              <PrimaryButton
+                className="d-flex flex-row align-items-center justify-content-center gap-3"
+                height={isResponsive ? "48px" : "48px"}
+                width={isResponsive ? "100px" : "100px"}
               >
-                <ArchiveIcon />
-              </Wrapper>
-            </Tooltip>
+                <Wrapper className="">
+                  <RecordAudio />
+                </Wrapper>
+                <Wrapper
+                  onClick={() => {
+                    setAddProModal(true);
+                  }}
+                >
+                  <Tooltip title="add to prompts">
+                    <ArchiveIcon />
+                  </Tooltip>
+                </Wrapper>
+              </PrimaryButton>
+            </Wrapper>
           </Wrapper>
-          <Wrapper className="mt-2 text-center">
-            <P className="mb-0" fontSize="12px">
-              Free Research Preview. ChatGPT may produce inaccurate information
-              about people, places, or facts.
-            </P>
-          </Wrapper>
+          {!isResponsive ? (
+            <Wrapper className=" text-center">
+              <P
+                className="mb-0"
+                fontSize={isResponsive ? "12px" : "12px"}
+                lHeight={isResponsive ? "16px" : "24px"}
+              >
+                Free Research Preview. ChatGPT may produce inaccurate
+                information about people, places, or facts.
+              </P>
+            </Wrapper>
+          ) : (
+            <>
+              <Wrapper></Wrapper>
+            </>
+          )}
         </Wrapper>
       </Wrapper>
     </>

@@ -10,6 +10,7 @@ type ContextProps = {
   setReloadPrompt: any;
   openModal: boolean;
   setOpenModal: any;
+  loadingPrompt: boolean;
 };
 const PromptContext = createContext<ContextProps | null>(null);
 const PromptProvider = ({ children }: any) => {
@@ -17,8 +18,10 @@ const PromptProvider = ({ children }: any) => {
   const [activePrompt, setActivePrompt] = useState("");
   const [reloadPrompt, setReloadPrompt] = useState(false);
   const [openModal, setOpenModal] = useState(false);
+  const [loadingPrompt, setLoadingPrompt] = useState(false);
   const getAllPrompt = async (token: string) => {
     try {
+      setLoadingPrompt(true);
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -26,7 +29,7 @@ const PromptProvider = ({ children }: any) => {
       };
 
       const res = await client.get("/prompt", config);
-
+      setLoadingPrompt(false);
       if (res.status === 200) {
         setAllPrompts(res.data);
       } else {
@@ -42,16 +45,15 @@ const PromptProvider = ({ children }: any) => {
         });
       }
     } catch (e) {
+      setLoadingPrompt(false);
+
       console.log("This is error ", e);
     }
   };
   useEffect(() => {
-    // const item = localStorage.getItem("userInfo");
-    // const userData = JSON.parse(item);
+    const item: any = localStorage.getItem("gptToken");
 
-    getAllPrompt(
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0ZjcxNjA4ZWYwMjJhMzRmNzNkZmQzNSIsImlhdCI6MTY5MzkxNDYzMywiZXhwIjoxNjk2NTA2NjMzfQ.Dk89NdzCYURMAcBLGeUpR8zHaDAMAB33uG_4jB0It98"
-    );
+    getAllPrompt(item);
   }, [reloadPrompt]);
   return (
     <>
@@ -64,6 +66,7 @@ const PromptProvider = ({ children }: any) => {
           setActivePrompt,
           openModal,
           setOpenModal,
+          loadingPrompt,
         }}
       >
         {children}

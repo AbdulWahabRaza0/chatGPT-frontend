@@ -3,20 +3,8 @@ import Box from "@mui/material/Box";
 import { H2 } from "./Typography";
 import Modal from "@mui/material/Modal";
 import CloseIcon from "@mui/icons-material/Close";
-import { Wrapper } from "./Layouts";
+import { Wrapper, useMediaQuery } from "./Layouts";
 import { Spacer } from "./Spacer";
-
-const style = {
-  position: "absolute" as "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "600px",
-  bgcolor: "#333333",
-  border: "2px solid #000",
-  boxShadow: 24,
-  p: 4,
-};
 
 export default function ModalComp({
   children,
@@ -24,8 +12,21 @@ export default function ModalComp({
   setOpenModal,
   title,
 }: any) {
-  const handleClose = () => setOpenModal(false);
+  const isResponsive = useMediaQuery({ query: "(max-width: 756px)" });
 
+  const handleClose = () => setOpenModal(false);
+  const style = {
+    position: "absolute" as "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: isResponsive ? "350px" : "600px",
+    bgcolor: "#333333",
+    border: "2px solid #000",
+    borderRadius: "10px",
+    boxShadow: 24,
+    p: 4,
+  };
   return (
     <div>
       <Modal

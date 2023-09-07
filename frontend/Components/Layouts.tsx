@@ -1,5 +1,6 @@
 import { Row, Col, Image } from "react-bootstrap";
 import styled from "styled-components";
+import { useMediaQuery } from "react-responsive";
 interface WrapperProps {
   size?: string;
   color?: string;
@@ -16,6 +17,7 @@ interface WrapperProps {
   pe?: string;
   pt?: string;
   pb?: string;
+  p?: string;
   family?: string;
   boxShadow?: string;
   pointer?: boolean;
@@ -41,6 +43,7 @@ const Wrapper = styled.div<WrapperProps>`
   padding-right: ${(props) => (props.pe ? props.pe : "")};
   padding-top: ${(props) => (props.pt ? props.pt : "")};
   padding-bottom: ${(props) => (props.pb ? props.pb : "")};
+  padding: ${(props) => (props.p ? props.p : "")};
   font-family: ${(props) => (props.family ? props.family : "")};
   box-shadow: ${(props) => (props.boxShadow ? props.boxShadow : "")};
   position: ${(props) => (props.position ? props.position : "")};
@@ -68,4 +71,4 @@ const SpanWrapper = styled.span<WrapperProps>`
   padding-bottom: ${(props) => (props.pb ? props.pb : "")};
   font-family: ${(props) => (props.family ? props.family : "")};
 `;
-export { Row, Col, Image, Wrapper, SpanWrapper };
+export { Row, Col, Image, Wrapper, SpanWrapper, useMediaQuery };
