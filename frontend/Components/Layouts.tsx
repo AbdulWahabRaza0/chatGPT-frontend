@@ -26,6 +26,7 @@ interface WrapperProps {
   bottom?: any;
   left?: any;
   right?: any;
+  hover?: any;
 }
 const Wrapper = styled.div<WrapperProps>`
   font-size: ${(props) => (props.size ? props.size : "")};
@@ -52,6 +53,9 @@ const Wrapper = styled.div<WrapperProps>`
   left: ${(props) => (props.left ? props.left : "")};
   right: ${(props) => (props.right ? props.right : "")};
   cursor: ${(props) => (props.pointer ? "pointer" : "")};
+  &:hover {
+    background-color: ${(props) => (props.hover ? props.hover : "")};
+  }
 `;
 const SpanWrapper = styled.span<WrapperProps>`
   font-size: ${(props) => (props.size ? props.size : "")};

@@ -15,6 +15,8 @@ type ContextProps = {
   setRecordedText: any;
   setRecordLoading: any;
   recordLoading: boolean;
+  setTabFlag: any;
+  tabFlag: boolean;
 };
 const RecentContext = createContext<ContextProps | null>(null);
 const RecentProvider = ({ children }: any) => {
@@ -25,6 +27,7 @@ const RecentProvider = ({ children }: any) => {
   const [loadingRecent, setLoadingRecent] = useState(false);
   const [recordedText, setRecordedText] = useState<any>("");
   const [recordLoading, setRecordLoading] = useState(false);
+  const [tabFlag, setTabFlag] = useState(false);
   const getAllRecent = async (token: string) => {
     try {
       setLoadingRecent(true);
@@ -75,6 +78,8 @@ const RecentProvider = ({ children }: any) => {
           recordedText,
           recordLoading,
           setRecordLoading,
+          tabFlag,
+          setTabFlag,
         }}
       >
         {children}

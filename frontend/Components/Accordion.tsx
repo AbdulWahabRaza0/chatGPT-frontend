@@ -14,11 +14,13 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Tooltip from "@mui/material/Tooltip";
 import { RecentState } from "./Context/Recents";
 import { PromptState } from "./Context/Prompts";
+import { ImageState } from "./Context/ImageGen";
 import { client } from "../services/client";
 import { toast } from "react-toastify";
 import { PrimaryInput } from "./Inputs";
 import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
+import AddIcon from "@mui/icons-material/Add";
 interface Props {
   title: any;
   mode: string;
@@ -34,6 +36,7 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
     activeRecent,
     setActiveRecent,
     loadingRecent,
+    tabFlag,
   }: any = RecentState();
   const {
     openModal,
@@ -44,6 +47,14 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
     reloadPrompt,
     setReloadPrompt,
   }: any = PromptState();
+  const {
+    loadingImageGen,
+    setActiveImageGen,
+    activeImageGen,
+    reloadImageGen,
+    setReloadImageGen,
+    setAllMessagesGen,
+  }: any = ImageState();
   const [mount, setMount] = useState(false);
   const [expanded, setExpanded] = useState<string | false>(false);
   const [editFlag, setEditFlag] = useState(false);
@@ -51,6 +62,7 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
   const [editText, setEditText] = useState("");
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
+  const [openFlag, setOpenFlag] = useState(false);
   const updateRecent = async (id: any) => {
     if (!editText) {
       return;
@@ -74,7 +86,69 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
         setEditFlag(false);
         setEditId("");
         setReloadRecent(!reloadRecent);
+        setEditText("");
         toast.success("Recent Chat Renamed!", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      } else {
+        toast.error("Invalid Error!", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      }
+    } catch (e) {
+      setLoading(false);
+      console.log("This si error ", e);
+      toast.error("Invalid Error!", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    }
+  };
+  const updateImageGen = async (id: any) => {
+    if (!editText) {
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await client.post(
+        "/recent/update",
+        {
+          id,
+          text: editText,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setLoading(false);
+      if (res.status === 201) {
+        setEditFlag(false);
+        setEditId("");
+        setReloadImageGen(!reloadImageGen);
+        setEditText("");
+        toast.success("Image Gen Renamed!", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
@@ -166,6 +240,61 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
       });
     }
   };
+  const deleteImageGen = async (id: any) => {
+    try {
+      setLoading(true);
+      const res = await client.post(
+        "/image/delete",
+        {
+          id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setLoading(false);
+      if (res.status === 201) {
+        setReloadImageGen(!reloadImageGen);
+        setActiveImageGen("");
+        toast.success("Image Gen Deleted!", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      } else {
+        toast.error("Invalid Error!", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      }
+    } catch (e) {
+      setLoading(false);
+      console.log("This is error ", e);
+      toast.error("Invalid Error!", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    }
+  };
   const deletePrompt = async (id: any) => {
     try {
       setLoading(true);
@@ -221,11 +350,25 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
       });
     }
   };
+
   useEffect(() => {
-    if (Boolean(activeRecent)) {
-      const messages: any = data.filter((val: any) => val._id === activeRecent);
-      if (Boolean(messages[0])) {
-        setAllMessages(messages[0].messages);
+    if (tabFlag) {
+      if (Boolean(activeImageGen)) {
+        const messages: any = data.filter(
+          (val: any) => val._id === activeImageGen
+        );
+        if (Boolean(messages[0])) {
+          setAllMessages(messages[0].messages);
+        }
+      }
+    } else {
+      if (Boolean(activeRecent)) {
+        const messages: any = data.filter(
+          (val: any) => val._id === activeRecent
+        );
+        if (Boolean(messages[0])) {
+          setAllMessages(messages[0].messages);
+        }
       }
     }
   }, [data]);
@@ -246,32 +389,45 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
       <Accordion
         expanded={expanded === "panel1"}
         onChange={handleChange("panel1")}
+        onClick={() => {
+          setOpenFlag(!openFlag);
+        }}
         sx={{
           background: "rgb(51, 51, 51,0.5)",
         }}
       >
         <AccordionSummary
-          expandIcon={<ExpandMoreIcon sx={{ color: "white" }} />}
+          expandIcon={
+            <Wrapper>
+              <ExpandMoreIcon sx={{ color: "white" }} />
+            </Wrapper>
+          }
           aria-controls="panel1bh-content"
           id="panel1bh-header"
         >
-          <Typography
-            sx={{
-              width: "auto",
-              flexShrink: 0,
-              color: "white",
-              fontSize: "14px",
-            }}
+          <Wrapper
+            width="100%"
+            className="d-flex flex-row align-items-center justify-content-between"
           >
-            {title}
-          </Typography>
+            <Typography
+              sx={{
+                width: "auto",
+                flexShrink: 0,
+                color: "white",
+                fontSize: "14px",
+              }}
+            >
+              {title}
+            </Typography>
+          </Wrapper>
         </AccordionSummary>
 
         <AccordionDetails
           style={{ overflow: "auto", maxHeight: "220px", position: "relative" }}
         >
           {(mode === "recent" && !loadingRecent) ||
-          (mode === "prompts" && !loadingPrompt) ? (
+          (mode === "prompts" && !loadingPrompt) ||
+          (mode === "image" && !loadingImageGen) ? (
             data.length > 0 ? (
               data?.map((val: any, index) => {
                 return (
@@ -293,6 +449,9 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
                               setActiveRecent(val._id);
                             } else if (mode === "prompts") {
                               setActivePrompt(val._id);
+                            } else if (mode === "image") {
+                              setActiveImageGen(val._id);
+                              setAllMessagesGen(val.messages);
                             }
                           }}
                         >
@@ -302,7 +461,9 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
                               className="mb-0"
                               style={{ whiteSpace: "nowrap", zIndex: "1" }}
                             >
-                              {mode === "recent" ? val.title : val.category}
+                              {mode === "recent" || mode === "image"
+                                ? val.title
+                                : val.category}
                             </P>
                           </Wrapper>
                           <Wrapper
@@ -319,6 +480,9 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
                                   setEditFlag(true);
                                 } else if ((mode = "prompts")) {
                                   setOpenModal(true);
+                                } else if (mode === "image") {
+                                  setEditId(val._id);
+                                  setEditFlag(true);
                                 }
                               }}
                             >
@@ -334,6 +498,8 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
                                     deleteRecent(val._id);
                                   } else if (mode === "prompts") {
                                     deletePrompt(val._id);
+                                  } else if (mode === "image") {
+                                    deleteImageGen(val._id);
                                   }
                                 }}
                               />
@@ -361,6 +527,8 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
                               onClick={() => {
                                 if (mode === "recent") {
                                   updateRecent(val._id);
+                                } else if (mode === "image") {
+                                  updateImageGen(val._id);
                                 }
                               }}
                             >

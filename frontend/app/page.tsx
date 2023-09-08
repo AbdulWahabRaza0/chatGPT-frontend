@@ -9,6 +9,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import RecentProvider from "@/Components/Context/Recents";
 import PromptProvider from "@/Components/Context/Prompts";
+import ImageGenProvider from "@/Components/Context/ImageGen";
 export default function Home() {
   const router = useRouter();
   const [mount, setMount] = useState(false);
@@ -37,10 +38,12 @@ export default function Home() {
       />
       <RecentProvider>
         <PromptProvider>
-          <Wrapper className="d-flex flex-row m-0">
-            <Sidebar />
-            <Chat />
-          </Wrapper>
+          <ImageGenProvider>
+            <Wrapper className="d-flex flex-row m-0">
+              <Sidebar />
+              <Chat />
+            </Wrapper>
+          </ImageGenProvider>
         </PromptProvider>
       </RecentProvider>
     </>

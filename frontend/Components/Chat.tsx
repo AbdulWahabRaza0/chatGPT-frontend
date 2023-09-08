@@ -9,6 +9,7 @@ import { PrimaryButton } from "./Buttons";
 import ModalComp from "./Modal";
 import { RecentState } from "./Context/Recents";
 import { PromptState } from "./Context/Prompts";
+import { ImageState } from "./Context/ImageGen";
 import { client } from "../services/client";
 import { toast } from "react-toastify";
 import RecordAudio from "./RecordAudio";
@@ -23,6 +24,7 @@ const Chat = () => {
     recordedText,
     setRecordedText,
     recordLoading,
+    tabFlag,
   }: any = RecentState();
   const {
     allPrompts,
@@ -33,6 +35,14 @@ const Chat = () => {
     activePrompt,
     setActivePrompt,
   }: any = PromptState();
+  const {
+    allImageGens,
+    activeImageGen,
+    allMessagesGen,
+    reloadImageGen,
+    setReloadImageGen,
+    setActiveImageGen,
+  }: any = ImageState();
   const [displayMessages, setDisplayMessages] = useState([]);
   const [addProModal, setAddProModal] = useState(false);
   const [promptTitle, setPromptTitle] = useState("");
@@ -95,7 +105,60 @@ const Chat = () => {
       });
     }
   };
+  const addImage = async () => {
+    if (!message || loading) {
+      return;
+    }
+    try {
+      setLoading(true);
 
+      const res = await client.post(
+        "/image/message/add",
+        {
+          id: activeImageGen,
+          message,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setLoading(false);
+
+      if (res.status === 201) {
+        setReloadImageGen(!reloadImageGen);
+        if (res.data.newAddition) {
+          setActiveImageGen(res.data.saved._id);
+        }
+        setMessage("");
+      } else {
+        toast.error("Invalid Error!", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      }
+    } catch (e) {
+      setLoading(false);
+      console.log("This is error ", e);
+      toast.error("Invalid Error!", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    }
+  };
   const addPrompt = async () => {
     if (!promptTitle || !promptMessage) {
       toast.error("Fill all the fields!", {
@@ -268,8 +331,8 @@ const Chat = () => {
     }
   };
   useEffect(() => {
-    setDisplayMessages(allMessages);
-  }, [allMessages]);
+    setDisplayMessages(tabFlag ? allMessagesGen : allMessages);
+  }, [allMessages, allMessagesGen]);
   useEffect(() => {
     if (activePrompt && Boolean(allPrompts)) {
       const prompt: any = allPrompts.filter(
@@ -292,7 +355,6 @@ const Chat = () => {
     const temp: any = localStorage.getItem("gptToken");
     if (temp) {
       setToken(temp);
-
       return;
     }
   }, []);
@@ -356,7 +418,7 @@ const Chat = () => {
         width="100%"
         height="100vh"
       >
-        {activeRecent ? (
+        {activeRecent || activeImageGen ? (
           <Wrapper
             id="messages"
             width="100%"
@@ -410,7 +472,7 @@ const Chat = () => {
                       >
                         <Image src="/assets/profile.webp" alt="profile" />
                         <P className="mb-0 mt-1" lHeight="27px">
-                          {val.text}
+                          {tabFlag ? val.src : val.text}
                         </P>
                       </Wrapper>
                     </Wrapper>
@@ -501,7 +563,13 @@ const Chat = () => {
                 bottom="19px"
                 pointer={true}
                 className="d-flex flex-row align-items-center gap-2"
-                onClick={addMessage}
+                onClick={() => {
+                  if (!tabFlag) {
+                    addMessage();
+                  } else {
+                    addImage();
+                  }
+                }}
                 id="mainClickToRequest"
               >
                 <Tooltip title="send">

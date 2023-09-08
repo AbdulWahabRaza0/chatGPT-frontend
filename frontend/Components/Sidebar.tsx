@@ -13,8 +13,13 @@ import ModalComp from "./Modal";
 import { PrimaryInput } from "./Inputs";
 import { client } from "../services/client";
 import { toast } from "react-toastify";
+import Tab from "react-bootstrap/Tab";
+import Tabs from "react-bootstrap/Tabs";
+import Nav from "react-bootstrap/Nav";
 import { RecentState } from "./Context/Recents";
 import { PromptState } from "./Context/Prompts";
+import { ImageState } from "./Context/ImageGen";
+
 const Sidebar = () => {
   const isResponsive = useMediaQuery({ query: "(max-width: 756px)" });
 
@@ -25,12 +30,16 @@ const Sidebar = () => {
     loadingRecent,
     activeRecent,
     setActiveRecent,
+    tabFlag,
+    setTabFlag,
   }: any = RecentState();
   const { allPrompts, openModal, setOpenModal }: any = PromptState();
+  const { allImageGens, reloadImageGen, setReloadImageGen }: any = ImageState();
   const router = useRouter();
   const [open, setOpen] = useState(true);
   const [displayRecent, setDisplayRecent] = useState<any>([]);
   const [displayPrompt, setDisplayPrompt] = useState<any>([]);
+  const [displayImageGen, setDisplayImageGen] = useState<any>([]);
   const [addRecModal, setAddRecModal] = useState(false);
   const [chatTitle, setChatTitle] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,7 +54,7 @@ const Sidebar = () => {
         },
         {
           headers: {
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0ZjcxNjA4ZWYwMjJhMzRmNzNkZmQzNSIsImlhdCI6MTY5MzkxNDYzMywiZXhwIjoxNjk2NTA2NjMzfQ.Dk89NdzCYURMAcBLGeUpR8zHaDAMAB33uG_4jB0It98`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -90,13 +99,70 @@ const Sidebar = () => {
       });
     }
   };
-
+  const addImageGen = async () => {
+    try {
+      setLoading(true);
+      const res = await client.post(
+        "/image/add",
+        {
+          title: chatTitle,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setLoading(false);
+      if (res.status === 201) {
+        setAddRecModal(false);
+        setReloadImageGen(!reloadImageGen);
+        toast.success("Image Gen Created!", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      } else {
+        toast.error("Invalid Error!", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      }
+    } catch (e) {
+      setLoading(false);
+      console.log("This si error ", e);
+      toast.error("Invalid Error!", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    }
+  };
   useEffect(() => {
     setDisplayRecent(allRecents);
   }, [allRecents]);
   useEffect(() => {
     setDisplayPrompt(allPrompts);
   }, [allPrompts]);
+  useEffect(() => {
+    setDisplayImageGen(allImageGens);
+  }, [allImageGens]);
   useEffect(() => {
     const temp = localStorage.getItem("gptToken");
     if (temp) {
@@ -125,7 +191,13 @@ const Sidebar = () => {
                 }}
               />
               <PrimaryButton
-                onClick={addChat}
+                onClick={() => {
+                  if (tabFlag) {
+                    addImageGen();
+                  } else {
+                    addChat();
+                  }
+                }}
                 width="auto"
                 className="p-4 mt-1"
                 bg="green"
@@ -195,17 +267,75 @@ const Sidebar = () => {
                 </PrimaryButton>
               </Wrapper>
               <Spacer height="35px" />
-              <Wrapper style={{ overflow: "auto" }} height="75vh">
-                <Wrapper id="recent-chats" className="mb-3">
-                  <Wrapper>
-                    <ControlledAccordions
-                      data={displayRecent}
-                      title={"Recent Chats"}
-                      mode="recent"
-                    />
-                  </Wrapper>
+              <Wrapper
+                width="100%"
+                className="d-flex flex-row align-items-center justify-content-between pb-4"
+              >
+                <Wrapper
+                  pointer={true}
+                  borderRadius="7px"
+                  width="48%"
+                  border="0.1px solid white"
+                  height="40px"
+                  hover={"#333333"}
+                  bg={tabFlag ? "" : "#444444"}
+                  boxShadow={
+                    tabFlag
+                      ? ""
+                      : "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
+                  }
+                  className="d-flex flex-row align-items-center justify-content-center"
+                  onClick={() => {
+                    setTabFlag(false);
+                  }}
+                >
+                  Chat
                 </Wrapper>
-                <Wrapper id="recent-chats" className="">
+                <Wrapper
+                  pointer={true}
+                  borderRadius="7px"
+                  hover={"#333333"}
+                  bg={!tabFlag ? "" : "#444444"}
+                  boxShadow={
+                    !tabFlag
+                      ? ""
+                      : "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
+                  }
+                  border="0.1px solid white"
+                  className="d-flex flex-row align-items-center justify-content-center"
+                  width="48%"
+                  height="40px"
+                  onClick={() => {
+                    setTabFlag(true);
+                  }}
+                >
+                  Image
+                </Wrapper>
+              </Wrapper>
+              <Wrapper style={{ overflow: "auto" }} height="67vh">
+                {!tabFlag ? (
+                  <Wrapper id="recent-chats" className="mb-3">
+                    <Wrapper>
+                      <ControlledAccordions
+                        data={displayRecent}
+                        title={"Recent Chats"}
+                        mode="recent"
+                      />
+                    </Wrapper>
+                  </Wrapper>
+                ) : (
+                  <Wrapper id="dall-e" className="mb-3">
+                    <Wrapper>
+                      <ControlledAccordions
+                        data={displayImageGen}
+                        title={"Image Gen"}
+                        mode="image"
+                      />
+                    </Wrapper>
+                  </Wrapper>
+                )}
+
+                <Wrapper id="prompts" className="mb-3">
                   <Wrapper>
                     <ControlledAccordions
                       data={displayPrompt}
