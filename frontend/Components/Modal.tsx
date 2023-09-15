@@ -21,10 +21,9 @@ export default function ModalComp({
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: isResponsive ? "350px" : "600px",
-    bgcolor: "#333333",
-    border: "2px solid #000",
+    bgcolor: "#EDF0F9",
     borderRadius: "10px",
-    boxShadow: 24,
+    // boxShadow: 24,
     p: 4,
   };
   return (

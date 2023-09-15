@@ -15,6 +15,11 @@ import Tooltip from "@mui/material/Tooltip";
 import { RecentState } from "./Context/Recents";
 import { PromptState } from "./Context/Prompts";
 import { ImageState } from "./Context/ImageGen";
+import { SideBarState } from "./Context/SideBar";
+import {
+  reloadRecentMessageById,
+  reloadImageMessageById,
+} from "./Logic/globalLogic";
 import { client } from "../services/client";
 import { toast } from "react-toastify";
 import { PrimaryInput } from "./Inputs";
@@ -55,6 +60,7 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
     setReloadImageGen,
     setAllMessagesGen,
   }: any = ImageState();
+  const { tabNo, setTabNo }: any = SideBarState();
   const [mount, setMount] = useState(false);
   const [expanded, setExpanded] = useState<string | false>(false);
   const [editFlag, setEditFlag] = useState(false);
@@ -63,6 +69,7 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
   const [openFlag, setOpenFlag] = useState(false);
+  const [activeProps, setActiveProps] = useState("");
   const updateRecent = async (id: any) => {
     if (!editText) {
       return;
@@ -131,7 +138,7 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
     try {
       setLoading(true);
       const res = await client.post(
-        "/recent/update",
+        "/image/update",
         {
           id,
           text: editText,
@@ -352,26 +359,14 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
   };
 
   useEffect(() => {
-    if (tabFlag) {
-      if (Boolean(activeImageGen)) {
-        const messages: any = data.filter(
-          (val: any) => val._id === activeImageGen
-        );
-        if (Boolean(messages[0])) {
-          setAllMessages(messages[0].messages);
-        }
-      }
-    } else {
-      if (Boolean(activeRecent)) {
-        const messages: any = data.filter(
-          (val: any) => val._id === activeRecent
-        );
-        if (Boolean(messages[0])) {
-          setAllMessages(messages[0].messages);
-        }
-      }
+    if (tabNo === 1) {
+      const tempData = reloadRecentMessageById(data, activeRecent);
+      setAllMessages(tempData);
+    } else if (tabNo === 2) {
+      const tempData = reloadImageMessageById(data, activeImageGen);
+      setAllMessagesGen(tempData);
     }
-  }, [data]);
+  }, [data, tabNo]);
   const handleChange =
     (panel: string) => (event: SyntheticEvent, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
@@ -386,7 +381,197 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
   }, []);
   return (
     <div>
-      <Accordion
+      {(mode === "recent" && !loadingRecent) ||
+      (mode === "prompts" && !loadingPrompt) ||
+      (mode === "image" && !loadingImageGen) ? (
+        data.length > 0 ? (
+          data?.map((val: any, index) => {
+            return (
+              <>
+                <Wrapper className="mb-3" key={index}>
+                  {!editFlag || editId !== val?._id ? (
+                    <PrimaryButton
+                      // bg="rgb(51, 51, 51,0.7)"
+                      bg={
+                        (mode === "prompts" && activePrompt === val._id) ||
+                        (mode === "recent" && activeRecent === val._id) ||
+                        (mode === "image" && activeImageGen === val._id)
+                          ? "#6785FF"
+                          : "#EDF0F9"
+                      }
+                      width="100%"
+                      height="110px"
+                      fontColor="#cccccc"
+                      className="pt-2 pb-2 ps-3 pe-3 d-flex flex-row align-items-start justify-content-between"
+                      // border="1px solid gray"
+                      borderRadius="7px"
+                      hover={
+                        (mode === "prompts" && activePrompt === val._id) ||
+                        (mode === "recent" && activeRecent === val._id) ||
+                        (mode === "image" && activeImageGen === val._id)
+                          ? "#6785FF"
+                          : "#EDF0F9"
+                      }
+                      onClick={() => {
+                        if (mode === "recent") {
+                          setAllMessages(val.messages);
+                          setActiveRecent(val._id);
+                        } else if (mode === "prompts") {
+                          setActivePrompt(val._id);
+                        } else if (mode === "image") {
+                          setAllMessagesGen(val.messages);
+                          setActiveImageGen(val._id);
+                        }
+                      }}
+                    >
+                      <Wrapper
+                        ps="5px"
+                        pt="10px"
+                        className="d-flex flex-row align-items-start gap-2"
+                      >
+                        <ChatIcon
+                          sx={{
+                            fontSize: "21px",
+                            marginTop: "2px",
+                            color:
+                              (mode === "prompts" &&
+                                activePrompt === val._id) ||
+                              (mode === "recent" && activeRecent === val._id) ||
+                              (mode === "image" && activeImageGen === val._id)
+                                ? "white"
+                                : "black",
+                          }}
+                        />
+                        <P
+                          className="mb-0 text-start"
+                          style={{ zIndex: "1" }}
+                          ellipsis={true}
+                          fontColor={
+                            (mode === "prompts" && activePrompt === val._id) ||
+                            (mode === "recent" && activeRecent === val._id) ||
+                            (mode === "image" && activeImageGen === val._id)
+                              ? "white"
+                              : "black"
+                          }
+                          weight="500"
+                        >
+                          {mode === "recent" || mode === "image"
+                            ? val.title
+                            : val.category}
+                        </P>
+                      </Wrapper>
+                      <Wrapper
+                        position="absolute"
+                        right="13px"
+                        // bg="rgb(51, 51, 51,0.7)"
+                        style={{ zIndex: "10" }}
+                        className="d-flex flex-row align-items-center align-self-end gap-2"
+                      >
+                        <Wrapper
+                          onClick={() => {
+                            if (mode === "recent") {
+                              setEditId(val._id);
+                              setEditFlag(true);
+                            } else if (mode === "prompts") {
+                              setOpenModal(true);
+                            } else if (mode === "image") {
+                              setEditId(val._id);
+                              setEditFlag(true);
+                            }
+                          }}
+                        >
+                          <Tooltip title="edit">
+                            <EditIcon sx={{ fontSize: "16px" }} />
+                          </Tooltip>
+                        </Wrapper>
+                        <Tooltip title="delete">
+                          <DeleteOutlineIcon
+                            sx={{ fontSize: "16px", marginTop: "5px" }}
+                            onClick={() => {
+                              if (mode === "recent") {
+                                deleteRecent(val._id);
+                              } else if (mode === "prompts") {
+                                deletePrompt(val._id);
+                              } else if (mode === "image") {
+                                deleteImageGen(val._id);
+                              }
+                            }}
+                          />
+                        </Tooltip>
+                      </Wrapper>
+                    </PrimaryButton>
+                  ) : (
+                    <>
+                      <Wrapper width="100%" height="40px" position="relative">
+                        <PrimaryInput
+                          position="absolute"
+                          height="35px"
+                          placeholder="rename chat"
+                          border="1px solid white"
+                          value={editText}
+                          onChange={(e) => {
+                            setEditText(e.target.value);
+                          }}
+                        />
+                        <Wrapper
+                          onClick={() => {
+                            if (mode === "recent") {
+                              updateRecent(val._id);
+                            } else if (mode === "image") {
+                              updateImageGen(val._id);
+                            }
+                          }}
+                        >
+                          <Tooltip title="done">
+                            <DoneIcon
+                              style={{
+                                color: "black",
+                                position: "absolute",
+                                top: "12px",
+                                right: "40px",
+                                fontSize: "18px",
+                                cursor: "pointer",
+                              }}
+                            />
+                          </Tooltip>
+                        </Wrapper>
+                        <Wrapper
+                          onClick={() => {
+                            setEditFlag(false);
+                            setEditId("");
+                          }}
+                        >
+                          <Tooltip title="close">
+                            <CloseIcon
+                              style={{
+                                color: "black",
+                                position: "absolute",
+                                top: "12px",
+                                right: "15px",
+                                fontSize: "18px",
+                                cursor: "pointer",
+                              }}
+                            />
+                          </Tooltip>
+                        </Wrapper>
+                      </Wrapper>
+                    </>
+                  )}
+                </Wrapper>
+              </>
+            );
+          })
+        ) : (
+          <>
+            <P fontColor="gray">No Data Found</P>
+          </>
+        )
+      ) : (
+        <>
+          <div className="spinner-border text-success" role="status"></div>
+        </>
+      )}
+      {/* <Accordion
         expanded={expanded === "panel1"}
         onChange={handleChange("panel1")}
         onClick={() => {
@@ -450,8 +635,8 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
                             } else if (mode === "prompts") {
                               setActivePrompt(val._id);
                             } else if (mode === "image") {
-                              setActiveImageGen(val._id);
                               setAllMessagesGen(val.messages);
+                              setActiveImageGen(val._id);
                             }
                           }}
                         >
@@ -478,7 +663,7 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
                                 if (mode === "recent") {
                                   setEditId(val._id);
                                   setEditFlag(true);
-                                } else if ((mode = "prompts")) {
+                                } else if (mode === "prompts") {
                                   setOpenModal(true);
                                 } else if (mode === "image") {
                                   setEditId(val._id);
@@ -582,7 +767,7 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
             </>
           )}
         </AccordionDetails>
-      </Accordion>
+      </Accordion> */}
     </div>
   );
 }

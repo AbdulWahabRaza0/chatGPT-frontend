@@ -6,6 +6,7 @@ interface TextProps {
   fontSize?: string;
   fontColor?: string;
   td?: string;
+  ellipsis?: boolean;
 }
 const H1 = styled.h1<TextProps>`
   font-style: normal;
@@ -60,5 +61,11 @@ const P = styled.p<TextProps>`
   font-size: ${(props) => (props.fontSize ? props.fontSize : "16px")};
   color: ${(props) => (props.fontColor ? props.fontColor : "")};
   text-decoration: ${(props) => (props.td ? props.td : "")};
+
+  overflow: ${(props) => (props.ellipsis ? "hidden" : "")};
+  text-overflow: ${(props) => (props.ellipsis ? " ellipsis" : "")};
+  display: ${(props) => (props.ellipsis ? " -webkit-box" : "")};
+  -webkit-line-clamp: ${(props) => (props.ellipsis ? "2" : "")};
+  -webkit-box-orient: ${(props) => (props.ellipsis ? "vertical" : "")};
 `;
 export { H1, H2, H3, H4, H5, P };

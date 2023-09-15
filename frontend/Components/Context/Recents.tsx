@@ -27,7 +27,7 @@ const RecentProvider = ({ children }: any) => {
   const [loadingRecent, setLoadingRecent] = useState(false);
   const [recordedText, setRecordedText] = useState<any>("");
   const [recordLoading, setRecordLoading] = useState(false);
-  const [tabFlag, setTabFlag] = useState(false);
+  const [tabFlag, setTabFlag] = useState(true);
   const getAllRecent = async (token: string) => {
     try {
       setLoadingRecent(true);

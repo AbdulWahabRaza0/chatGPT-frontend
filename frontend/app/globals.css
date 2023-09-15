@@ -4,11 +4,11 @@ html {
   overflow-x: hidden;
 }
 body {
-  background: #333333 !important;
-  height: 100vh;
+  background: #fefefe !important;
+
   width: 100%;
   margin: 0px;
-  color: #cccccc !important;
+  color: #000 !important;
   font-family: "Open Sans", sans-serif !important;
 }
 ::-webkit-scrollbar {
@@ -20,4 +20,16 @@ body {
 ::-webkit-scrollbar-thumb {
   width: 0;
   background: transparent;
+}
+
+input:focus {
+  outline: none !important;
+  border: 1px solid white;
+  box-shadow: 0 0 10px #719ece;
+}
+
+textarea:focus {
+  outline: none !important;
+  border: 1px solid white;
+  box-shadow: 0 0 10px #719ece;
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Wrapper, Image, useMediaQuery } from "./Layouts";
+import { Wrapper, useMediaQuery, Image } from "./Layouts";
 import { PrimaryInput, PrimaryTextarea } from "./Inputs";
 import SendIcon from "@mui/icons-material/Send";
 import { P } from "./Typography";
@@ -10,9 +10,15 @@ import ModalComp from "./Modal";
 import { RecentState } from "./Context/Recents";
 import { PromptState } from "./Context/Prompts";
 import { ImageState } from "./Context/ImageGen";
+import { SideBarState } from "./Context/SideBar";
+import {
+  reloadRecentMessageById,
+  reloadImageMessageById,
+} from "./Logic/globalLogic";
 import { client } from "../services/client";
 import { toast } from "react-toastify";
 import RecordAudio from "./RecordAudio";
+
 const Chat = () => {
   const isResponsive = useMediaQuery({ query: "(max-width: 756px)" });
   const {
@@ -25,6 +31,7 @@ const Chat = () => {
     setRecordedText,
     recordLoading,
     tabFlag,
+    allRecents,
   }: any = RecentState();
   const {
     allPrompts,
@@ -43,6 +50,7 @@ const Chat = () => {
     setReloadImageGen,
     setActiveImageGen,
   }: any = ImageState();
+  const { tabNo, setTabNo }: any = SideBarState();
   const [displayMessages, setDisplayMessages] = useState([]);
   const [addProModal, setAddProModal] = useState(false);
   const [promptTitle, setPromptTitle] = useState("");
@@ -128,6 +136,7 @@ const Chat = () => {
 
       if (res.status === 201) {
         setReloadImageGen(!reloadImageGen);
+
         if (res.data.newAddition) {
           setActiveImageGen(res.data.saved._id);
         }
@@ -331,8 +340,14 @@ const Chat = () => {
     }
   };
   useEffect(() => {
-    setDisplayMessages(tabFlag ? allMessagesGen : allMessages);
-  }, [allMessages, allMessagesGen]);
+    if (tabNo === 1) {
+      const tempData = reloadRecentMessageById(allRecents, activeRecent);
+      setDisplayMessages(tempData);
+    } else if (tabNo === 2) {
+      const tempData = reloadImageMessageById(allImageGens, activeImageGen);
+      setDisplayMessages(tempData);
+    }
+  }, [allMessages, allMessagesGen, tabNo, allRecents, allImageGens]);
   useEffect(() => {
     if (activePrompt && Boolean(allPrompts)) {
       const prompt: any = allPrompts.filter(
@@ -395,8 +410,10 @@ const Chat = () => {
                   addPrompt();
                 }}
                 width="auto"
-                className="p-4 mt-1"
-                bg="green"
+                className="p-4 mt-3"
+                fontColor="white"
+                hover="#6785FF"
+                bg="#6785FF"
               >
                 {loadingPromptBtn ? (
                   <div
@@ -416,14 +433,18 @@ const Chat = () => {
         className="d-flex flex-column align-items-center justfy-content-center"
         position="relative"
         width="100%"
-        height="100vh"
+        height="85vh"
+        borderRadius="17px"
+        ps={isResponsive ? "" : "45px"}
+        pe={isResponsive ? "" : "40px"}
+        bg="#EDF0F9"
       >
-        {activeRecent || activeImageGen ? (
+        {(activeRecent || activeImageGen) && (tabNo === 2 || tabNo === 1) ? (
           <Wrapper
             id="messages"
             width="100%"
             className="d-flex flex-column align-items-start"
-            height="100vh"
+            height="80vh"
             style={{ overflow: "auto" }}
             pb="150px"
           >
@@ -432,23 +453,29 @@ const Chat = () => {
                 <>
                   <Wrapper
                     key={index}
-                    bg="#202123"
+                    // bg="#202123"
                     height="auto"
                     width="100%"
-                    className="p-4"
+                    className={isResponsive ? "ps-2 pe-2 pt-4 pb-4" : "p-4"}
                   >
                     <Wrapper
                       width="100%"
                       className="d-flex flex-row align-items-start justify-content-center"
                     >
                       <Wrapper
-                        width={isResponsive ? "99%" : "63%"}
+                        width={isResponsive ? "100%" : "100%"}
                         className={`d-flex flex-row align-items-center justify-content-start gap-3 ${
                           isResponsive && "me-3"
                         }`}
                       >
-                        <Image src="/assets/profile.webp" alt="profile" />
-                        <P className="mb-0 mt-1" lHeight="27px">
+                        <Image
+                          src="/assets/gpt.jpg"
+                          alt="profile"
+                          width="40px"
+                          height="40px"
+                          className="img-fluid"
+                        />
+                        <P className="mb-0 mt-1" weight="600" lHeight="27px">
                           {val.message}
                         </P>
                       </Wrapper>
@@ -458,21 +485,31 @@ const Chat = () => {
                     key={val.text}
                     height="auto"
                     width="100%"
-                    className="p-4"
+                    className={isResponsive ? "ps-2 pe-2 pt-3 pb-3" : "p-4"}
                   >
                     <Wrapper
                       width="100%"
                       className={`d-flex flex-row align-items-center justify-content-center `}
                     >
                       <Wrapper
-                        width={isResponsive ? "99%" : "63%"}
+                        width={isResponsive ? "100%" : "100%"}
                         className={`d-flex flex-row align-items-start justify-content-start gap-3 ${
-                          isResponsive && "me-3"
+                          isResponsive && "me-0"
                         }`}
                       >
                         <Image src="/assets/profile.webp" alt="profile" />
                         <P className="mb-0 mt-1" lHeight="27px">
-                          {tabFlag ? val.src : val.text}
+                          {tabNo === 2 ? (
+                            <Image
+                              src={val.src}
+                              width={200}
+                              height={200}
+                              alt="ai art work"
+                              className="img-fluid"
+                            />
+                          ) : (
+                            val.text
+                          )}
                         </P>
                       </Wrapper>
                     </Wrapper>
@@ -481,13 +518,13 @@ const Chat = () => {
               );
             })}
             {loading && (
-              <Wrapper bg="#202123" height="auto" width="100%" className="p-4">
+              <Wrapper height="auto" width="100%" className="p-4">
                 <Wrapper
                   width="100%"
                   className="d-flex flex-row align-items-start justify-content-center"
                 >
                   <Wrapper
-                    width={isResponsive ? "95%" : "60%"}
+                    width={isResponsive ? "95%" : "99%"}
                     className="d-flex flex-row align-items-center justify-content-start gap-3"
                   >
                     <Image src="/assets/profile.webp" alt="profile" />
@@ -502,8 +539,8 @@ const Chat = () => {
           </Wrapper>
         ) : (
           <>
-            <Wrapper className="pt-5">
-              <P fontSize="41px" weight="600">
+            <Wrapper className={isResponsive ? "pt-4" : "pt-5"}>
+              <P fontSize={isResponsive ? "31px" : "41px"} weight="600">
                 Chat GPT
               </P>
 
@@ -523,106 +560,116 @@ const Chat = () => {
             </Wrapper>
           </>
         )}
-
-        <Wrapper
-          width="100%"
-          position="absolute"
-          bottom="0px"
-          style={{ zIndex: 20 }}
-          className={`ps-2 pe-2 pt-2 ${isResponsive ? "pb-2" : "pb-2"}`}
-          mb={"-7.5px"}
-          bg="#202123"
-        >
+        {tabNo !== 0 && (
           <Wrapper
-            className={`d-flex flex-row align-items-end  ${
-              isResponsive
-                ? "justify-content-start ms-3"
-                : "justify-content-center"
+            width="100%"
+            position="absolute"
+            bottom="10px"
+            style={{ zIndex: 20 }}
+            className={`pe-2 pt-3 ${
+              isResponsive ? "pb-2 ps-1 " : "pb-2 ps-2 "
             }`}
-            boxShadow="rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
+            // mb={"-7.5px"}
+            bg="#EDF0F9"
           >
-            <Wrapper position="relative" width={isResponsive ? "90%" : "60%"}>
-              <PrimaryTextarea
-                id="primaryTextArea"
-                placeholder="Send a message"
-                value={message}
-                className="pe-5"
-                height={textHeight + "px"}
-                onKeyDown={handleEnterPress}
-                onChange={(e) => {
-                  setMessage(e.target.value);
-                  if (e.target.value.length === 0) {
-                    setTextHeight(50);
-                  }
-                }}
-              />
-
-              <Wrapper
-                position="absolute"
-                right="20px"
-                bottom="19px"
-                pointer={true}
-                className="d-flex flex-row align-items-center gap-2"
-                onClick={() => {
-                  if (!tabFlag) {
-                    addMessage();
-                  } else {
-                    addImage();
-                  }
-                }}
-                id="mainClickToRequest"
-              >
-                <Tooltip title="send">
-                  <SendIcon />
-                </Tooltip>
-              </Wrapper>
-            </Wrapper>
-
             <Wrapper
-              pointer={true}
-              border="1px solid white"
-              borderRadius="10px"
-              className="ms-2 mb-1"
-              bg="#333333"
-              boxShadow="rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
+              className={`d-flex flex-row align-items-end  ${
+                isResponsive
+                  ? "justify-content-start"
+                  : "justify-content-center me-2 ms-2"
+              }`}
+              // boxShadow="rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
             >
-              <PrimaryButton
-                className="d-flex flex-row align-items-center justify-content-center gap-3"
-                height={isResponsive ? "48px" : "48px"}
-                width={isResponsive ? "100px" : "100px"}
-              >
-                <Wrapper className="">
-                  <RecordAudio />
-                </Wrapper>
-                <Wrapper
-                  onClick={() => {
-                    setAddProModal(true);
+              <Wrapper position="relative" width={isResponsive ? "90%" : "90%"}>
+                <PrimaryTextarea
+                  id="primaryTextArea"
+                  placeholder="Send a message"
+                  value={message}
+                  border="none"
+                  className="pe-5"
+                  height={textHeight + "px"}
+                  onKeyDown={handleEnterPress}
+                  onChange={(e) => {
+                    setMessage(e.target.value);
+                    if (e.target.value.length === 0) {
+                      setTextHeight(50);
+                    }
                   }}
+                />
+
+                <Wrapper
+                  position="absolute"
+                  right={isResponsive ? "15px" : "20px"}
+                  bottom={isResponsive ? "22px" : "19px"}
+                  pointer={true}
+                  className="d-flex flex-row align-items-center gap-2"
+                  onClick={() => {
+                    if (tabNo === 1) {
+                      addMessage();
+                    } else if (tabNo === 2) {
+                      addImage();
+                    }
+                  }}
+                  id="mainClickToRequest"
                 >
-                  <Tooltip title="add to prompts">
-                    <ArchiveIcon />
+                  <Tooltip title="send">
+                    <SendIcon
+                      style={{ fontSize: isResponsive ? "16px" : "" }}
+                    />
                   </Tooltip>
                 </Wrapper>
-              </PrimaryButton>
-            </Wrapper>
-          </Wrapper>
-          {!isResponsive ? (
-            <Wrapper className=" text-center">
-              <P
-                className="mb-0"
-                fontSize={isResponsive ? "12px" : "12px"}
-                lHeight={isResponsive ? "16px" : "24px"}
+              </Wrapper>
+
+              <Wrapper
+                pointer={true}
+                border="1px solid white"
+                borderRadius="10px"
+                className="ms-2 mb-1"
+                bg="white"
+                // boxShadow="rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
               >
-                Free Research Preview. ChatGPT may produce inaccurate
-                information about people, places, or facts.
-              </P>
+                <PrimaryButton
+                  className={`d-flex flex-row align-items-center justify-content-center ${
+                    isResponsive ? "gap-2" : "gap-3"
+                  }`}
+                  height={isResponsive ? "48px" : "50px"}
+                  width={isResponsive ? "60px" : "100px"}
+                >
+                  <Wrapper className="">
+                    <RecordAudio />
+                  </Wrapper>
+                  <Wrapper
+                    onClick={() => {
+                      setAddProModal(true);
+                    }}
+                  >
+                    <Tooltip title="add to prompts">
+                      <ArchiveIcon
+                        style={{ fontSize: isResponsive ? "16px" : "" }}
+                      />
+                    </Tooltip>
+                  </Wrapper>
+                </PrimaryButton>
+              </Wrapper>
             </Wrapper>
-          ) : (
-            <>
-              <Wrapper></Wrapper>
-            </>
-          )}
-        </Wrapper>
+            {/* {!isResponsive ? (
+    <Wrapper className=" text-center">
+      <P
+        className="mb-0"
+        fontSize={isResponsive ? "12px" : "12px"}
+        lHeight={isResponsive ? "16px" : "24px"}
+      >
+        Free Research Preview. ChatGPT may produce inaccurate
+        information about people, places, or facts.
+      </P>
+    </Wrapper>
+  ) : (
+    <>
+      <Wrapper></Wrapper>
+    </>
+  )} */}
+          </Wrapper>
+        )}
       </Wrapper>
     </>
   );

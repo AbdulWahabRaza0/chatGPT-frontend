@@ -13,13 +13,15 @@ import ModalComp from "./Modal";
 import { PrimaryInput } from "./Inputs";
 import { client } from "../services/client";
 import { toast } from "react-toastify";
-import Tab from "react-bootstrap/Tab";
-import Tabs from "react-bootstrap/Tabs";
 import Nav from "react-bootstrap/Nav";
+import SearchIcon from "@mui/icons-material/Search";
 import { RecentState } from "./Context/Recents";
 import { PromptState } from "./Context/Prompts";
 import { ImageState } from "./Context/ImageGen";
+import { SideBarState } from "./Context/SideBar";
 
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
 const Sidebar = () => {
   const isResponsive = useMediaQuery({ query: "(max-width: 756px)" });
 
@@ -34,9 +36,17 @@ const Sidebar = () => {
     setTabFlag,
   }: any = RecentState();
   const { allPrompts, openModal, setOpenModal }: any = PromptState();
-  const { allImageGens, reloadImageGen, setReloadImageGen }: any = ImageState();
+  const {
+    allImageGens,
+    reloadImageGen,
+    setReloadImageGen,
+    activeImageGen,
+    setActiveImageGen,
+  }: any = ImageState();
   const router = useRouter();
-  const [open, setOpen] = useState(true);
+  // const [open, setOpen] = useState(true);
+  const { openSideBar, setOpenSideBar, tabNo, setTabNo }: any = SideBarState();
+
   const [displayRecent, setDisplayRecent] = useState<any>([]);
   const [displayPrompt, setDisplayPrompt] = useState<any>([]);
   const [displayImageGen, setDisplayImageGen] = useState<any>([]);
@@ -44,6 +54,11 @@ const Sidebar = () => {
   const [chatTitle, setChatTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
+  const [value, setValue] = useState(0);
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setValue(newValue);
+  };
   const addChat = async () => {
     try {
       setLoading(true);
@@ -156,20 +171,24 @@ const Sidebar = () => {
   };
   useEffect(() => {
     setDisplayRecent(allRecents);
-  }, [allRecents]);
+  }, [allRecents, tabNo]);
   useEffect(() => {
     setDisplayPrompt(allPrompts);
   }, [allPrompts]);
   useEffect(() => {
     setDisplayImageGen(allImageGens);
-  }, [allImageGens]);
+  }, [allImageGens, tabNo]);
+
   useEffect(() => {
+    const moveToSignIn = () => {
+      router.push("/signin");
+    };
     const temp = localStorage.getItem("gptToken");
     if (temp) {
       setToken(temp);
-      return;
+    } else {
+      // moveToSignIn();
     }
-    router.push("/signin");
   }, []);
   return (
     <>
@@ -192,15 +211,17 @@ const Sidebar = () => {
               />
               <PrimaryButton
                 onClick={() => {
-                  if (tabFlag) {
+                  if (tabNo === 2) {
                     addImageGen();
-                  } else {
+                  } else if (tabNo === 1) {
                     addChat();
                   }
                 }}
                 width="auto"
-                className="p-4 mt-1"
-                bg="green"
+                className="p-4 mt-3"
+                fontColor="white"
+                hover="#6785FF"
+                bg="#6785FF"
               >
                 {loading ? (
                   <div
@@ -215,19 +236,22 @@ const Sidebar = () => {
           </ModalComp>
         </>
       )}
-      {open ? (
+      {openSideBar ? (
         <>
           <Wrapper
-            width="260px"
-            height={isResponsive ? "100vh" : "100vh"}
-            bg="#202123"
-            boxShadow="rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px"
-            className={`d-flex flex-column justify-content-between align-items-between ps-2 pe-2 pt-3 pb-3`}
+            width={isResponsive ? "300px" : "350px"}
+            height={isResponsive ? "100vh" : "95vh"}
+            bg="white"
+            // boxShadow="rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px"
+            className={`d-flex flex-column justify-content-between align-items-between ps-2 pe-2 ${
+              isResponsive ? "pt-3" : "pt-4"
+            }`}
             position={isResponsive ? "absolute" : ""}
+            left={isResponsive ? "0px" : ""}
             style={{ zIndex: 700 }}
           >
             <Wrapper id="top">
-              <Wrapper
+              {/* <Wrapper
                 id="sidebar-header"
                 className="d-flex flex-row align-items-center gap-2"
                 width="100%"
@@ -240,6 +264,7 @@ const Sidebar = () => {
                   className="d-flex flex-row align-items-center justify-content-start gap-2"
                   onClick={() => {
                     setAddRecModal(true);
+                    setActiveImageGen("");
                     setActiveRecent("");
                   }}
                 >
@@ -265,16 +290,30 @@ const Sidebar = () => {
                 >
                   <MenuIcon style={{ fontSize: "14px" }} />
                 </PrimaryButton>
+              </Wrapper> */}
+              <Wrapper position="relative">
+                <PrimaryInput
+                  type="text"
+                  style={{ paddingLeft: "40px" }}
+                  placeholder="Search"
+                  borderRadius="11px"
+                  border="1px solid gray"
+                  height="40px"
+                  position="relative"
+                />
+                <SearchIcon
+                  style={{ position: "absolute", left: "10px", top: "9.5px" }}
+                />
               </Wrapper>
-              <Spacer height="35px" />
-              <Wrapper
+              <Spacer height="10px" />
+              {/* <Wrapper
                 width="100%"
                 className="d-flex flex-row align-items-center justify-content-between pb-4"
               >
                 <Wrapper
                   pointer={true}
                   borderRadius="7px"
-                  width="48%"
+                  width="47%"
                   border="0.1px solid white"
                   height="40px"
                   hover={"#333333"}
@@ -284,7 +323,7 @@ const Sidebar = () => {
                       ? ""
                       : "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
                   }
-                  className="d-flex flex-row align-items-center justify-content-center"
+                  className="d-flex flex-row align-items-center justify-content-center ms-1"
                   onClick={() => {
                     setTabFlag(false);
                   }}
@@ -302,8 +341,8 @@ const Sidebar = () => {
                       : "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
                   }
                   border="0.1px solid white"
-                  className="d-flex flex-row align-items-center justify-content-center"
-                  width="48%"
+                  className="d-flex flex-row align-items-center justify-content-center me-1"
+                  width="47%"
                   height="40px"
                   onClick={() => {
                     setTabFlag(true);
@@ -311,8 +350,8 @@ const Sidebar = () => {
                 >
                   Image
                 </Wrapper>
-              </Wrapper>
-              <Wrapper style={{ overflow: "auto" }} height="67vh">
+              </Wrapper> */}
+              {/* <Wrapper style={{ overflow: "auto" }} height="67vh">
                 {!tabFlag ? (
                   <Wrapper id="recent-chats" className="mb-3">
                     <Wrapper>
@@ -344,10 +383,148 @@ const Sidebar = () => {
                     />
                   </Wrapper>
                 </Wrapper>
+              </Wrapper> */}
+
+              {/* Different way of toggle  */}
+              {tabNo === 0 ? (
+                <>
+                  <Tabs value={tabFlag ? 0 : null}>
+                    <Tab
+                      onClick={() => {
+                        setTabFlag(true);
+                      }}
+                      label="Prompts"
+                    />
+                  </Tabs>
+                </>
+              ) : (
+                <>
+                  <Tabs value={tabFlag ? 1 : 0}>
+                    {tabNo === 1 && (
+                      <Tab
+                        onClick={() => {
+                          setTabFlag(false);
+                        }}
+                        label="Recent Chats"
+                      />
+                    )}
+                    {tabNo === 2 && (
+                      <Tab
+                        onClick={() => {
+                          setTabFlag(false);
+                        }}
+                        label="Recent Images"
+                      />
+                    )}
+
+                    <Tab
+                      onClick={() => {
+                        setTabFlag(true);
+                      }}
+                      label="Prompts"
+                    />
+                  </Tabs>
+                </>
+              )}
+
+              <Spacer height="20px" />
+
+              {/* <Wrapper
+                width="100%"
+                className="d-flex flex-row align-items-center justify-content-start gap-2 pb-4"
+              >
+           
+                {(tabNo === 1 || tabNo === 2) && (
+                  <Wrapper
+                    pointer={true}
+                    borderRadius="7px"
+                    width="90px"
+                    border="0.1px solid white"
+                    height="35px"
+                    // hover={"#333333"}
+                    bg={tabFlag ? "#EDF0F9" : "#6785FE"}
+                    color={tabFlag ? "black" : "white"}
+                    boxShadow={
+                      tabFlag
+                        ? ""
+                        : "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
+                    }
+                    className="d-flex flex-row align-items-center justify-content-center p-2"
+                    onClick={() => {
+                      setTabFlag(false);
+                    }}
+                  >
+                    {tabNo === 1 && "Chat "}
+                    {tabNo === 2 && "Images"}
+                  </Wrapper>
+
+                )}
+
+                <Wrapper
+                  pointer={true}
+                  borderRadius="7px"
+                  // hover={"#333333"}
+                  width="90px"
+                  bg={!tabFlag ? "#EDF0F9" : "#6785FE"}
+                  color={!tabFlag ? "black" : "white"}
+                  boxShadow={
+                    !tabFlag
+                      ? ""
+                      : "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
+                  }
+                  border="0.1px solid white"
+                  className="d-flex flex-row align-items-center justify-content-center"
+                  height="35px"
+                  onClick={() => {
+                    setTabFlag(true);
+                  }}
+                >
+                  Prompts
+                </Wrapper>
+              </Wrapper> */}
+
+              {/* New Way to display Data  */}
+              <Wrapper
+                style={{ overflow: "auto" }}
+                height={isResponsive ? "76vh" : "73vh"}
+              >
+                {tabNo === 1 && !tabFlag && (
+                  <Wrapper id="recent-chats" className="mb-3">
+                    <Wrapper>
+                      <ControlledAccordions
+                        data={displayRecent}
+                        title={"Recent Chats"}
+                        mode="recent"
+                      />
+                    </Wrapper>
+                  </Wrapper>
+                )}
+                {tabNo === 2 && !tabFlag && (
+                  <Wrapper id="dall-e" className="mb-3">
+                    <Wrapper>
+                      <ControlledAccordions
+                        data={displayImageGen}
+                        title={"Image Gen"}
+                        mode="image"
+                      />
+                    </Wrapper>
+                  </Wrapper>
+                )}
+                {tabFlag && (
+                  <Wrapper id="prompts" className="mb-3">
+                    <Wrapper>
+                      <ControlledAccordions
+                        data={displayPrompt}
+                        title={"Prompts"}
+                        mode="prompts"
+                      />
+                    </Wrapper>
+                  </Wrapper>
+                )}
               </Wrapper>
             </Wrapper>
 
-            <Wrapper
+            {/* <Wrapper
               id="bottom"
               className="d-flex flex-column align-items-center justify-content-end gap-2"
             >
@@ -374,12 +551,12 @@ const Sidebar = () => {
                   </Tooltip>
                 </Wrapper>
               </Wrapper>
-            </Wrapper>
+            </Wrapper> */}
           </Wrapper>
         </>
       ) : (
         <>
-          <Wrapper
+          {/* <Wrapper
             style={{ zIndex: 100 }}
             position="fixed"
             top="20px"
@@ -397,12 +574,12 @@ const Sidebar = () => {
                 minHeight: "42px",
               }}
               onClick={() => {
-                setOpen(true);
+                setOpenSideBar(true);
               }}
             >
               <MenuIcon style={{ fontSize: "14px" }} />
             </PrimaryButton>
-          </Wrapper>
+          </Wrapper> */}
         </>
       )}
     </>

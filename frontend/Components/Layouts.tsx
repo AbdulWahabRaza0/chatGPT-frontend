@@ -27,12 +27,14 @@ interface WrapperProps {
   left?: any;
   right?: any;
   hover?: any;
+  minWidth?: any;
 }
 const Wrapper = styled.div<WrapperProps>`
   font-size: ${(props) => (props.size ? props.size : "")};
   color: ${(props) => (props.color ? props.color : "")};
   background: ${(props) => (props.bg ? props.bg : "")};
   width: ${(props) => (props.width ? props.width : "")};
+  min-width: ${(props) => (props.minWidth ? props.minWidth : "")};
   height: ${(props) => (props.height ? props.height : "")};
   border-radius: ${(props) => (props.borderRadius ? props.borderRadius : "")};
   border: ${(props) => (props.border ? props.border : "")};

@@ -3,14 +3,15 @@ import { useState, useEffect } from "react";
 import MicIcon from "@mui/icons-material/Mic";
 import MicOffIcon from "@mui/icons-material/MicOff";
 import PauseIcon from "@mui/icons-material/Pause";
-import { Wrapper } from "./Layouts";
+import { Wrapper, useMediaQuery } from "./Layouts";
 import { RecentState } from "./Context/Recents";
 const RecordAudio = () => {
+  const isResponsive = useMediaQuery({ query: "(max-width: 756px)" });
+
   const {
     recording,
     speaking,
     transcript,
-
     pauseRecording,
     startRecording,
     stopRecording,
@@ -33,18 +34,17 @@ const RecordAudio = () => {
     if (Boolean(transcript.text)) {
       setRecordedText(transcript.text);
       setRecordLoading(false);
+      setMicOn(false);
     } else {
       setRecordLoading(false);
+      setMicOn(false);
     }
     console.log("This is transcript text ", transcript);
   }, [transcript.text]);
-  useEffect(() => {
-    console.log("This is data for transcript ", transcript);
-  }, [transcript]);
   return (
     mount && (
       <>
-        {!micOn && (
+        {!micOn && !recordLoading && (
           <>
             <Wrapper
               pointer={true}
@@ -53,7 +53,7 @@ const RecordAudio = () => {
                 setMicOn(true);
               }}
             >
-              <MicOffIcon />
+              <MicOffIcon style={{ fontSize: isResponsive ? "16px" : "" }} />
             </Wrapper>
           </>
         )}
@@ -65,7 +65,7 @@ const RecordAudio = () => {
                 onClick={async () => {
                   setRecordLoading(true);
                   await stopRecording();
-                  setMicOn(false);
+
                   setPause(false);
                 }}
               >
@@ -74,16 +74,21 @@ const RecordAudio = () => {
                     {" "}
                     <div
                       style={{
-                        fontSize: "18px",
-                        width: "18px",
-                        height: "18px",
+                        fontSize: isResponsive ? "16px" : "18px",
+                        width: isResponsive ? "16px" : "18px",
+                        height: isResponsive ? "16px" : "18px",
                       }}
                       className="spinner-border text-success"
                       role="status"
                     ></div>
                   </>
                 ) : (
-                  <MicIcon style={{ color: !pause ? "green" : "" }} />
+                  <MicIcon
+                    style={{
+                      color: !pause ? "green" : "",
+                      fontSize: isResponsive ? "16px" : "",
+                    }}
+                  />
                 )}
               </Wrapper>
               {!recordLoading && (
@@ -94,7 +99,12 @@ const RecordAudio = () => {
                     setPause(true);
                   }}
                 >
-                  <PauseIcon style={{ color: pause ? "green" : "" }} />
+                  <PauseIcon
+                    style={{
+                      color: pause ? "green" : "",
+                      fontSize: isResponsive ? "16px" : "",
+                    }}
+                  />
                 </Wrapper>
               )}
             </Wrapper>
