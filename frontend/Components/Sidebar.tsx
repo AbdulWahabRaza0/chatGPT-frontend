@@ -19,9 +19,12 @@ import { RecentState } from "./Context/Recents";
 import { PromptState } from "./Context/Prompts";
 import { ImageState } from "./Context/ImageGen";
 import { SideBarState } from "./Context/SideBar";
-
+import { styled } from "@mui/system";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+const StyledTab = styled(Tab)({
+  "& .MuiTabs-indicator": {},
+});
 const Sidebar = () => {
   const isResponsive = useMediaQuery({ query: "(max-width: 756px)" });
 
@@ -55,10 +58,8 @@ const Sidebar = () => {
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
   const [value, setValue] = useState(0);
+  const [search, setSearch] = useState("");
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
-  };
   const addChat = async () => {
     try {
       setLoading(true);
@@ -169,6 +170,24 @@ const Sidebar = () => {
       });
     }
   };
+  const SearchItem = (value: any) => {
+    if (tabNo === 0 && !tabFlag) {
+      const temp = allRecents.filter((item: any) =>
+        item.title.toLowerCase().includes(value.toLowerCase())
+      );
+      setDisplayRecent(temp);
+    } else if (tabNo === 1 && !tabFlag) {
+      const temp = allImageGens.filter((item: any) =>
+        item.title.toLowerCase().includes(value.toLowerCase())
+      );
+      setDisplayImageGen(temp);
+    } else {
+      const temp = allPrompts.filter((item: any) =>
+        item.category.toLowerCase().includes(value.toLowerCase())
+      );
+      setDisplayPrompt(temp);
+    }
+  };
   useEffect(() => {
     setDisplayRecent(allRecents);
   }, [allRecents, tabNo]);
@@ -211,9 +230,9 @@ const Sidebar = () => {
               />
               <PrimaryButton
                 onClick={() => {
-                  if (tabNo === 2) {
+                  if (tabNo === 1) {
                     addImageGen();
-                  } else if (tabNo === 1) {
+                  } else if (tabNo === 0) {
                     addChat();
                   }
                 }}
@@ -224,10 +243,11 @@ const Sidebar = () => {
                 bg="#6785FF"
               >
                 {loading ? (
-                  <div
-                    className="spinner-border text-success"
+                  <Wrapper
+                    color="white"
+                    className="spinner-border"
                     role="status"
-                  ></div>
+                  ></Wrapper>
                 ) : (
                   "Add Chat"
                 )}
@@ -240,7 +260,7 @@ const Sidebar = () => {
         <>
           <Wrapper
             width={isResponsive ? "300px" : "350px"}
-            height={isResponsive ? "100vh" : "95vh"}
+            height={isResponsive ? "100vh" : "97vh"}
             bg="white"
             // boxShadow="rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px"
             className={`d-flex flex-column justify-content-between align-items-between ps-2 pe-2 ${
@@ -251,46 +271,6 @@ const Sidebar = () => {
             style={{ zIndex: 700 }}
           >
             <Wrapper id="top">
-              {/* <Wrapper
-                id="sidebar-header"
-                className="d-flex flex-row align-items-center gap-2"
-                width="100%"
-              >
-                <PrimaryButton
-                  border="1px solid gray"
-                  hover=" #444444"
-                  fontColor="white"
-                  padding="15px"
-                  className="d-flex flex-row align-items-center justify-content-start gap-2"
-                  onClick={() => {
-                    setAddRecModal(true);
-                    setActiveImageGen("");
-                    setActiveRecent("");
-                  }}
-                >
-                  <AddIcon style={{ fontSize: "14px" }} />
-                  <P className="mb-0" fontSize="14px">
-                    New Chat
-                  </P>
-                </PrimaryButton>
-                <PrimaryButton
-                  border="1px solid gray"
-                  hover=" #444444"
-                  fontColor="white"
-                  width="auto"
-                  style={{
-                    maxWidth: "42px",
-                    maxHeight: "42px",
-                    minWidth: "42px",
-                    minHeight: "42px",
-                  }}
-                  onClick={() => {
-                    setOpen(false);
-                  }}
-                >
-                  <MenuIcon style={{ fontSize: "14px" }} />
-                </PrimaryButton>
-              </Wrapper> */}
               <Wrapper position="relative">
                 <PrimaryInput
                   type="text"
@@ -300,311 +280,121 @@ const Sidebar = () => {
                   border="1px solid gray"
                   height="40px"
                   position="relative"
+                  value={search}
+                  onChange={(e: any) => {
+                    setSearch(e.target.value);
+                    SearchItem(e.target.value);
+                  }}
                 />
                 <SearchIcon
                   style={{ position: "absolute", left: "10px", top: "9.5px" }}
                 />
               </Wrapper>
               <Spacer height="10px" />
-              {/* <Wrapper
-                width="100%"
-                className="d-flex flex-row align-items-center justify-content-between pb-4"
-              >
-                <Wrapper
-                  pointer={true}
-                  borderRadius="7px"
-                  width="47%"
-                  border="0.1px solid white"
-                  height="40px"
-                  hover={"#333333"}
-                  bg={tabFlag ? "" : "#444444"}
-                  boxShadow={
-                    tabFlag
-                      ? ""
-                      : "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
-                  }
-                  className="d-flex flex-row align-items-center justify-content-center ms-1"
-                  onClick={() => {
-                    setTabFlag(false);
-                  }}
-                >
-                  Chat
-                </Wrapper>
-                <Wrapper
-                  pointer={true}
-                  borderRadius="7px"
-                  hover={"#333333"}
-                  bg={!tabFlag ? "" : "#444444"}
-                  boxShadow={
-                    !tabFlag
-                      ? ""
-                      : "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
-                  }
-                  border="0.1px solid white"
-                  className="d-flex flex-row align-items-center justify-content-center me-1"
-                  width="47%"
-                  height="40px"
-                  onClick={() => {
-                    setTabFlag(true);
-                  }}
-                >
-                  Image
-                </Wrapper>
-              </Wrapper> */}
-              {/* <Wrapper style={{ overflow: "auto" }} height="67vh">
-                {!tabFlag ? (
-                  <Wrapper id="recent-chats" className="mb-3">
-                    <Wrapper>
-                      <ControlledAccordions
-                        data={displayRecent}
-                        title={"Recent Chats"}
-                        mode="recent"
-                      />
-                    </Wrapper>
-                  </Wrapper>
-                ) : (
-                  <Wrapper id="dall-e" className="mb-3">
-                    <Wrapper>
-                      <ControlledAccordions
-                        data={displayImageGen}
-                        title={"Image Gen"}
-                        mode="image"
-                      />
-                    </Wrapper>
-                  </Wrapper>
-                )}
 
-                <Wrapper id="prompts" className="mb-3">
-                  <Wrapper>
-                    <ControlledAccordions
-                      data={displayPrompt}
-                      title={"Prompts"}
-                      mode="prompts"
-                    />
-                  </Wrapper>
-                </Wrapper>
-              </Wrapper> */}
-
-              {/* Different way of toggle  */}
-              {tabNo === 0 ? (
-                <>
-                  <Tabs value={tabFlag ? 0 : null}>
-                    <Tab
+              <Wrapper>
+                <Tabs value={tabFlag ? 1 : 0}>
+                  {tabNo === 0 && (
+                    <StyledTab
                       onClick={() => {
-                        setTabFlag(true);
+                        setTabFlag(false);
                       }}
                       label={
                         <span
-                          style={{ fontSize: isResponsive ? "12px" : "14px" }}
+                          style={{
+                            fontSize: isResponsive ? "12px" : "12px",
+                            fontWeight: "bold",
+                            marginBottom: "-13px",
+                          }}
                         >
-                          Prompts
+                          Recent Chats
                         </span>
                       }
                     />
-                  </Tabs>
-                </>
-              ) : (
-                <>
-                  <Tabs value={tabFlag ? 1 : 0}>
-                    {tabNo === 1 && (
-                      <Tab
-                        onClick={() => {
-                          setTabFlag(false);
-                        }}
-                        label={
-                          <span
-                            style={{ fontSize: isResponsive ? "12px" : "14px" }}
-                          >
-                            Recent Chats
-                          </span>
-                        }
-                      />
-                    )}
-                    {tabNo === 2 && (
-                      <Tab
-                        onClick={() => {
-                          setTabFlag(false);
-                        }}
-                        label={
-                          <span
-                            style={{ fontSize: isResponsive ? "12px" : "14px" }}
-                          >
-                            Recent Images
-                          </span>
-                        }
-                      />
-                    )}
-
-                    <Tab
+                  )}
+                  {tabNo === 1 && (
+                    <StyledTab
                       onClick={() => {
-                        setTabFlag(true);
+                        setTabFlag(false);
                       }}
                       label={
                         <span
-                          style={{ fontSize: isResponsive ? "12px" : "14px" }}
+                          style={{
+                            fontSize: isResponsive ? "12px" : "12px",
+                            fontWeight: "bold",
+                            marginBottom: "-13px",
+                          }}
                         >
-                          Prompts
+                          Recent Images
                         </span>
                       }
                     />
-                  </Tabs>
-                </>
-              )}
+                  )}
 
-              <Spacer height="20px" />
-
-              {/* <Wrapper
-                width="100%"
-                className="d-flex flex-row align-items-center justify-content-start gap-2 pb-4"
-              >
-           
-                {(tabNo === 1 || tabNo === 2) && (
-                  <Wrapper
-                    pointer={true}
-                    borderRadius="7px"
-                    width="90px"
-                    border="0.1px solid white"
-                    height="35px"
-                    // hover={"#333333"}
-                    bg={tabFlag ? "#EDF0F9" : "#6785FE"}
-                    color={tabFlag ? "black" : "white"}
-                    boxShadow={
-                      tabFlag
-                        ? ""
-                        : "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
-                    }
-                    className="d-flex flex-row align-items-center justify-content-center p-2"
+                  <StyledTab
                     onClick={() => {
-                      setTabFlag(false);
+                      setTabFlag(true);
                     }}
-                  >
-                    {tabNo === 1 && "Chat "}
-                    {tabNo === 2 && "Images"}
-                  </Wrapper>
+                    label={
+                      <span
+                        style={{
+                          fontSize: isResponsive ? "12px" : "12px",
+                          fontWeight: "bold",
+                          marginBottom: "-13px",
+                        }}
+                      >
+                        Prompts
+                      </span>
+                    }
+                  />
+                </Tabs>
 
-                )}
+                <Spacer height="20px" />
 
                 <Wrapper
-                  pointer={true}
-                  borderRadius="7px"
-                  // hover={"#333333"}
-                  width="90px"
-                  bg={!tabFlag ? "#EDF0F9" : "#6785FE"}
-                  color={!tabFlag ? "black" : "white"}
-                  boxShadow={
-                    !tabFlag
-                      ? ""
-                      : "rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
-                  }
-                  border="0.1px solid white"
-                  className="d-flex flex-row align-items-center justify-content-center"
-                  height="35px"
-                  onClick={() => {
-                    setTabFlag(true);
-                  }}
+                  style={{ overflow: "auto" }}
+                  height={isResponsive ? "76vh" : "73vh"}
                 >
-                  Prompts
+                  {tabNo === 0 && !tabFlag && (
+                    <Wrapper id="recent-chats" className="mb-3">
+                      <Wrapper>
+                        <ControlledAccordions
+                          data={displayRecent}
+                          title={"Recent Chats"}
+                          mode="recent"
+                        />
+                      </Wrapper>
+                    </Wrapper>
+                  )}
+                  {tabNo === 1 && !tabFlag && (
+                    <Wrapper id="dall-e" className="mb-3">
+                      <Wrapper>
+                        <ControlledAccordions
+                          data={displayImageGen}
+                          title={"Image Gen"}
+                          mode="image"
+                        />
+                      </Wrapper>
+                    </Wrapper>
+                  )}
+                  {tabFlag && (
+                    <Wrapper id="prompts" className="mb-3">
+                      <Wrapper>
+                        <ControlledAccordions
+                          data={displayPrompt}
+                          title={"Prompts"}
+                          mode="prompts"
+                        />
+                      </Wrapper>
+                    </Wrapper>
+                  )}
                 </Wrapper>
-              </Wrapper> */}
-
-              {/* New Way to display Data  */}
-              <Wrapper
-                style={{ overflow: "auto" }}
-                height={isResponsive ? "76vh" : "73vh"}
-              >
-                {tabNo === 1 && !tabFlag && (
-                  <Wrapper id="recent-chats" className="mb-3">
-                    <Wrapper>
-                      <ControlledAccordions
-                        data={displayRecent}
-                        title={"Recent Chats"}
-                        mode="recent"
-                      />
-                    </Wrapper>
-                  </Wrapper>
-                )}
-                {tabNo === 2 && !tabFlag && (
-                  <Wrapper id="dall-e" className="mb-3">
-                    <Wrapper>
-                      <ControlledAccordions
-                        data={displayImageGen}
-                        title={"Image Gen"}
-                        mode="image"
-                      />
-                    </Wrapper>
-                  </Wrapper>
-                )}
-                {tabFlag && (
-                  <Wrapper id="prompts" className="mb-3">
-                    <Wrapper>
-                      <ControlledAccordions
-                        data={displayPrompt}
-                        title={"Prompts"}
-                        mode="prompts"
-                      />
-                    </Wrapper>
-                  </Wrapper>
-                )}
               </Wrapper>
             </Wrapper>
-
-            {/* <Wrapper
-              id="bottom"
-              className="d-flex flex-column align-items-center justify-content-end gap-2"
-            >
-              <Wrapper bg="gray" width="100%" height="1px"></Wrapper>
-              <Wrapper
-                height="50px"
-                width="220px"
-                className="d-flex flex-row align-items-center justify-content-between"
-              >
-                <Wrapper className="d-flex flex-row align-items-center gap-2">
-                  <Image
-                    src="/assets/profile.webp"
-                    alt="profile"
-                    width="30px"
-                    height="30px"
-                  />
-                  <P className="mb-0" fontSize="14px">
-                    Abdul Wahab
-                  </P>
-                </Wrapper>
-                <Wrapper pointer={true}>
-                  <Tooltip title="more">
-                    <MoreHorizIcon style={{ fontSize: "14px" }} />
-                  </Tooltip>
-                </Wrapper>
-              </Wrapper>
-            </Wrapper> */}
           </Wrapper>
         </>
       ) : (
-        <>
-          {/* <Wrapper
-            style={{ zIndex: 100 }}
-            position="fixed"
-            top="20px"
-            left="20px"
-          >
-            <PrimaryButton
-              border="1px solid gray"
-              hover=" #444444"
-              fontColor="white"
-              width="auto"
-              style={{
-                maxWidth: "42px",
-                maxHeight: "42px",
-                minWidth: "42px",
-                minHeight: "42px",
-              }}
-              onClick={() => {
-                setOpenSideBar(true);
-              }}
-            >
-              <MenuIcon style={{ fontSize: "14px" }} />
-            </PrimaryButton>
-          </Wrapper> */}
-        </>
+        <></>
       )}
     </>
   );

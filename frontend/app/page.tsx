@@ -70,7 +70,8 @@ export default function Home() {
         style={{ transform: "translate(-50%,-50%)" }}
       >
         <Wrapper
-          className="spinner-border text-success"
+          color="#6785FF"
+          className="spinner-border"
           role="status"
         ></Wrapper>
       </Wrapper>

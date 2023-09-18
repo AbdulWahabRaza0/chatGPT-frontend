@@ -24,7 +24,7 @@ const PrimaryTextarea = styled.textarea<InputProps>`
   color: black;
   border: ${(props) => (props.border ? props.border : "0px")};
   height: ${(props) => (props.height ? props.height : "50px")};
-
+  box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
   padding-left: 20px;
   padding-right: 14px;
   padding-top: 15px;

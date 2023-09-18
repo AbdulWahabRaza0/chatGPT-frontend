@@ -340,10 +340,10 @@ const Chat = () => {
     }
   };
   useEffect(() => {
-    if (tabNo === 1) {
+    if (tabNo === 0) {
       const tempData = reloadRecentMessageById(allRecents, activeRecent);
       setDisplayMessages(tempData);
-    } else if (tabNo === 2) {
+    } else if (tabNo === 1) {
       const tempData = reloadImageMessageById(allImageGens, activeImageGen);
       setDisplayMessages(tempData);
     }
@@ -416,10 +416,11 @@ const Chat = () => {
                 bg="#6785FF"
               >
                 {loadingPromptBtn ? (
-                  <div
-                    className="spinner-border text-success"
+                  <Wrapper
+                    color="white"
+                    className="spinner-border"
                     role="status"
-                  ></div>
+                  ></Wrapper>
                 ) : (
                   "Add Prompt"
                 )}
@@ -433,13 +434,15 @@ const Chat = () => {
         className="d-flex flex-column align-items-center justfy-content-center"
         position="relative"
         width="100%"
-        height="85vh"
+        height={isResponsive ? "92vh" : "85vh"}
         borderRadius="17px"
-        ps={isResponsive ? "" : "45px"}
+        ps={isResponsive ? "" : "25px"}
         pe={isResponsive ? "" : "40px"}
+        mt={isResponsive ? "10px" : ""}
         bg="#EDF0F9"
+        // boxShadow="rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px"
       >
-        {(activeRecent || activeImageGen) && (tabNo === 2 || tabNo === 1) ? (
+        {(activeRecent || activeImageGen) && (tabNo === 0 || tabNo === 1) ? (
           <Wrapper
             id="messages"
             width="100%"
@@ -456,7 +459,11 @@ const Chat = () => {
                     // bg="#202123"
                     height="auto"
                     width="100%"
-                    className={isResponsive ? "ps-2 pe-2 pt-4 pb-4" : "p-4"}
+                    className={
+                      isResponsive
+                        ? "ps-2 pe-2 pt-4 pb-4"
+                        : "pt-4 pb-3 ps-3 pe-4"
+                    }
                   >
                     <Wrapper
                       width="100%"
@@ -469,7 +476,7 @@ const Chat = () => {
                         }`}
                       >
                         <Image
-                          src="/assets/gpt.jpg"
+                          src="/assets/profile.webp"
                           alt="profile"
                           width={isResponsive ? "35px" : "40px"}
                           height={isResponsive ? "35px" : "40px"}
@@ -485,7 +492,11 @@ const Chat = () => {
                     key={val.text}
                     height="auto"
                     width="100%"
-                    className={isResponsive ? "ps-2 pe-2 pt-3 pb-3" : "p-4"}
+                    className={
+                      isResponsive
+                        ? "ps-2 pe-2 pt-2 pb-3"
+                        : "pt-3 pb-4 ps-3 pe-4"
+                    }
                   >
                     <Wrapper
                       width="100%"
@@ -498,14 +509,14 @@ const Chat = () => {
                         }`}
                       >
                         <Image
-                          src="/assets/profile.webp"
+                          src="/assets/gpt.jpg"
                           alt="profile"
                           width={isResponsive ? "35px" : "40px"}
                           height={isResponsive ? "35px" : "40px"}
                           className="rounded-5"
                         />
                         <P className="mb-0 mt-1" lHeight="27px">
-                          {tabNo === 2 ? (
+                          {tabNo === 1 ? (
                             <Image
                               src={val.src}
                               width="200px"
@@ -530,14 +541,15 @@ const Chat = () => {
                   className="d-flex flex-row align-items-start justify-content-center"
                 >
                   <Wrapper
-                    width={isResponsive ? "95%" : "99%"}
+                    width={isResponsive ? "100%" : "100%"}
                     className="d-flex flex-row align-items-center justify-content-start gap-3"
                   >
                     <Image src="/assets/profile.webp" alt="profile" />
-                    <div
-                      className="spinner-border text-success"
+                    <Wrapper
+                      color="#6785FF"
+                      className="spinner-border"
                       role="status"
-                    ></div>
+                    ></Wrapper>
                   </Wrapper>
                 </Wrapper>
               </Wrapper>
@@ -558,7 +570,8 @@ const Chat = () => {
                   style={{ transform: "translate(-50%,-50%)" }}
                 >
                   <Wrapper
-                    className="spinner-border text-success"
+                    color="#6785FF"
+                    className="spinner-border"
                     role="status"
                   ></Wrapper>
                 </Wrapper>
@@ -566,14 +579,14 @@ const Chat = () => {
             </Wrapper>
           </>
         )}
-        {tabNo !== 0 && (
+        {(tabNo === 0 || tabNo === 1) && (
           <Wrapper
-            width="100%"
+            width="98%"
             position="absolute"
-            bottom="10px"
+            bottom={isResponsive ? "5px" : "10px"}
             style={{ zIndex: 20 }}
-            className={`pe-2 pt-3 ${
-              isResponsive ? "pb-2 ps-1 " : "pb-2 ps-2 "
+            className={`pe-2  ${
+              isResponsive ? "ps-1 pt-2" : "pt-3 pb-2 ps-2 "
             }`}
             // mb={"-7.5px"}
             bg="#EDF0F9"
@@ -586,7 +599,7 @@ const Chat = () => {
               }`}
               // boxShadow="rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset"
             >
-              <Wrapper position="relative" width={isResponsive ? "90%" : "90%"}>
+              <Wrapper position="relative" width={isResponsive ? "95%" : "90%"}>
                 <PrimaryTextarea
                   id="primaryTextArea"
                   placeholder="Send a message"
@@ -610,9 +623,9 @@ const Chat = () => {
                   pointer={true}
                   className="d-flex flex-row align-items-center gap-2"
                   onClick={() => {
-                    if (tabNo === 1) {
+                    if (tabNo === 0) {
                       addMessage();
-                    } else if (tabNo === 2) {
+                    } else if (tabNo === 1) {
                       addImage();
                     }
                   }}
@@ -658,22 +671,6 @@ const Chat = () => {
                 </PrimaryButton>
               </Wrapper>
             </Wrapper>
-            {/* {!isResponsive ? (
-    <Wrapper className=" text-center">
-      <P
-        className="mb-0"
-        fontSize={isResponsive ? "12px" : "12px"}
-        lHeight={isResponsive ? "16px" : "24px"}
-      >
-        Free Research Preview. ChatGPT may produce inaccurate
-        information about people, places, or facts.
-      </P>
-    </Wrapper>
-  ) : (
-    <>
-      <Wrapper></Wrapper>
-    </>
-  )} */}
           </Wrapper>
         )}
       </Wrapper>

@@ -72,15 +72,16 @@ const RecordAudio = () => {
                 {recordLoading ? (
                   <>
                     {" "}
-                    <div
+                    <Wrapper
                       style={{
                         fontSize: isResponsive ? "16px" : "18px",
                         width: isResponsive ? "16px" : "18px",
                         height: isResponsive ? "16px" : "18px",
                       }}
-                      className="spinner-border text-success"
+                      color="#6785FF"
+                      className="spinner-border"
                       role="status"
-                    ></div>
+                    ></Wrapper>
                   </>
                 ) : (
                   <MicIcon

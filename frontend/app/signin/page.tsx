@@ -100,13 +100,13 @@ const Signin = () => {
           width={isResponsive ? "80%" : "40%"}
         >
           <P fontSize="41px" weight="600">
-            Signin
+            Sign in
           </P>
           <Spacer height="20px" />
           <PrimaryInput
             height="50px"
             placeholder="Enter email"
-            border="1px solid white"
+            border="1px solid gray"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
@@ -116,18 +116,22 @@ const Signin = () => {
           <PrimaryInput
             height="50px"
             placeholder="Enter password"
-            border="1px solid white"
+            border="1px solid gray"
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
             }}
           />
           <Spacer height="10px" />
-          <PrimaryButton onClick={signin} bg="green" hover="rgb(0,255,0,0.2)">
+          <PrimaryButton onClick={signin} bg="#6785FF" hover="#6785FF">
             {loading ? (
-              <div className="spinner-border text-success" role="status"></div>
+              <Wrapper
+                color="white"
+                className="spinner-border"
+                role="status"
+              ></Wrapper>
             ) : (
-              "Signin"
+              "Sign in"
             )}
           </PrimaryButton>
         </Wrapper>
@@ -142,7 +146,8 @@ const Signin = () => {
         style={{ transform: "translate(-50%,-50%)" }}
       >
         <Wrapper
-          className="spinner-border text-success"
+          color="#6785FF"
+          className="spinner-border"
           role="status"
         ></Wrapper>
       </Wrapper>

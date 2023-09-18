@@ -23,7 +23,7 @@ export const PrimaryButton = styled(ButtonComp)<Props>`
   text-transform: none;
   font-size: ${(props) => (props.fontSize ? props.fontSize : "16px")};
   height: ${(props) => (props.height ? props.height : "42px")};
-  color: ${(props) => (props.fontColor ? props.fontColor : "#cccccc")};
+  color: ${(props) => (props.fontColor ? props.fontColor : "white")};
   width: ${(props) => (props.width ? props.width : "200px")};
   line-height: ${(props) => (props.lh ? props.lh : "auto")};
   margin-top: ${(props) => (props.mt ? props.mt : "0px")};
@@ -31,8 +31,9 @@ export const PrimaryButton = styled(ButtonComp)<Props>`
   border-radius: ${(props) =>
     props.borderRadius ? props.borderRadius : "6px"};
   border: ${(props) => (props.border ? props.border : "none")};
-  background: ${(props) => (props.bg ? props.bg : "")};
+  background: ${(props) => (props.bg ? props.bg : "#6785FF")};
   &:hover {
-    background: ${(props) => (props.hover ? props.hover : "") + " !important"};
+    background: ${(props) =>
+      (props.hover ? props.hover : "#6785FF") + " !important"};
   }
 `;
