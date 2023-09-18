@@ -393,7 +393,13 @@ const Sidebar = () => {
                       onClick={() => {
                         setTabFlag(true);
                       }}
-                      label="Prompts"
+                      label={
+                        <span
+                          style={{ fontSize: isResponsive ? "12px" : "14px" }}
+                        >
+                          Prompts
+                        </span>
+                      }
                     />
                   </Tabs>
                 </>
@@ -405,7 +411,13 @@ const Sidebar = () => {
                         onClick={() => {
                           setTabFlag(false);
                         }}
-                        label="Recent Chats"
+                        label={
+                          <span
+                            style={{ fontSize: isResponsive ? "12px" : "14px" }}
+                          >
+                            Recent Chats
+                          </span>
+                        }
                       />
                     )}
                     {tabNo === 2 && (
@@ -413,7 +425,13 @@ const Sidebar = () => {
                         onClick={() => {
                           setTabFlag(false);
                         }}
-                        label="Recent Images"
+                        label={
+                          <span
+                            style={{ fontSize: isResponsive ? "12px" : "14px" }}
+                          >
+                            Recent Images
+                          </span>
+                        }
                       />
                     )}
 
@@ -421,7 +439,13 @@ const Sidebar = () => {
                       onClick={() => {
                         setTabFlag(true);
                       }}
-                      label="Prompts"
+                      label={
+                        <span
+                          style={{ fontSize: isResponsive ? "12px" : "14px" }}
+                        >
+                          Prompts
+                        </span>
+                      }
                     />
                   </Tabs>
                 </>

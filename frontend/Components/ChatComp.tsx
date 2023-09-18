@@ -19,13 +19,17 @@ const ChatComp = () => {
         <Wrapper
           height={isResponsive ? "8vh" : "10vh"}
           width={isResponsive ? "100%" : "90%"}
-          ps={isResponsive ? "10px" : ""}
-          pe={isResponsive ? "10px" : ""}
+          ps={isResponsive ? "15px" : ""}
+          pe={isResponsive ? "20px" : ""}
           className={`d-flex flex-row align-items-center justify-content-between ${
             isResponsive ? "" : "ps-4 pe-4"
           } `}
         >
-          <Wrapper className="d-flex flex-row align-items-center gap-3">
+          <Wrapper
+            className={`d-flex flex-row align-items-center ${
+              isResponsive ? "gap-1" : "gap-3"
+            }`}
+          >
             <Image
               src="/assets/profileImg.jpg"
               width={isResponsive ? "40px" : "70px"}

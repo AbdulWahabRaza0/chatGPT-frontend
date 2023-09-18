@@ -400,7 +400,7 @@ export default function ControlledAccordions({ title, data, mode }: Props) {
                           : "#EDF0F9"
                       }
                       width="100%"
-                      height="110px"
+                      height={isResponsive ? "90px" : "110px"}
                       fontColor="#cccccc"
                       className="pt-2 pb-2 ps-3 pe-3 d-flex flex-row align-items-start justify-content-between"
                       // border="1px solid gray"

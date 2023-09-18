@@ -471,9 +471,9 @@ const Chat = () => {
                         <Image
                           src="/assets/gpt.jpg"
                           alt="profile"
-                          width="40px"
-                          height="40px"
-                          className="img-fluid"
+                          width={isResponsive ? "35px" : "40px"}
+                          height={isResponsive ? "35px" : "40px"}
+                          className="img-fluid rounded-5"
                         />
                         <P className="mb-0 mt-1" weight="600" lHeight="27px">
                           {val.message}
@@ -497,13 +497,19 @@ const Chat = () => {
                           isResponsive && "me-0"
                         }`}
                       >
-                        <Image src="/assets/profile.webp" alt="profile" />
+                        <Image
+                          src="/assets/profile.webp"
+                          alt="profile"
+                          width={isResponsive ? "35px" : "40px"}
+                          height={isResponsive ? "35px" : "40px"}
+                          className="rounded-5"
+                        />
                         <P className="mb-0 mt-1" lHeight="27px">
                           {tabNo === 2 ? (
                             <Image
                               src={val.src}
-                              width={200}
-                              height={200}
+                              width="200px"
+                              height="200px"
                               alt="ai art work"
                               className="img-fluid"
                             />
