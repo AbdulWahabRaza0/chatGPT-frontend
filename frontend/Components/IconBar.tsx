@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Wrapper, useMediaQuery, Image } from "./Layouts";
 import HomeIcon from "@mui/icons-material/Home";
 import ImageIcon from "@mui/icons-material/Image";
@@ -25,6 +26,8 @@ const IconsArray = [
   },
 ];
 const IconBar = () => {
+  const router = useRouter();
+
   const isResponsive = useMediaQuery({ query: "(max-width: 756px)" });
 
   const { tabNo, setTabNo, openSideBar, setOpenSideBar }: any = SideBarState();
@@ -34,6 +37,10 @@ const IconBar = () => {
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
+  };
+  const logoutHandle = () => {
+    localStorage.clear();
+    router.push("/signin");
   };
   const handleClose = () => {
     setAnchorEl(null);
@@ -150,11 +157,13 @@ const IconBar = () => {
           ) : (
             <>
               {" "}
-              <Wrapper className="d-flex flex-column align-items-center justify-content-center gap-4">
-                <LogoutIcon
-                  className="text-white"
-                  style={{ fontSize: "31px" }}
-                />
+              <Wrapper className="d-flex flex-column align-items-center justify-content-center gap-3">
+                <Wrapper pointer={true} onClick={logoutHandle}>
+                  <LogoutIcon
+                    className="text-white"
+                    style={{ fontSize: "31px" }}
+                  />
+                </Wrapper>
                 <Wrapper>
                   <Button
                     id="basic-button"
@@ -162,7 +171,7 @@ const IconBar = () => {
                     aria-haspopup="true"
                     aria-expanded={open ? "true" : undefined}
                     onClick={handleClick}
-                    className="d-flex flex-row align-items-center justify-content-center ms-1"
+                    className="d-flex flex-row align-items-center justify-content-center"
                   >
                     <Image
                       src="/assets/profileImg.jpg"
@@ -173,7 +182,7 @@ const IconBar = () => {
                     />
                     /
                   </Button>
-                  <Menu
+                  {/* <Menu
                     id="basic-menu"
                     anchorEl={anchorEl}
                     open={open}
@@ -183,7 +192,7 @@ const IconBar = () => {
                     }}
                   >
                     <MenuItem onClick={handleClose}>Logout</MenuItem>
-                  </Menu>
+                  </Menu> */}
                 </Wrapper>
               </Wrapper>
             </>

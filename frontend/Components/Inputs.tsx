@@ -4,9 +4,10 @@ interface InputProps {
   height?: string;
   position?: string;
   borderRadius?: string;
+  bg?: string;
 }
 const PrimaryInput = styled.input<InputProps>`
-  background: white;
+  background: ${(props) => (props.bg ? props.bg : "white")};
   color: black;
   border: ${(props) => (props.border ? props.border : "0px")};
   height: ${(props) => (props.height ? props.height : "50px")};
